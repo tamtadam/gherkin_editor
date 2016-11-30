@@ -1,0 +1,6 @@
+CREATE TABLE sessions (
+  id        TEXT     NOT NULL,
+  a_session TEXT     NOT NULL,
+  expire    TEXT     NOT NULL,
+  pid       INTEGER  NOT NULL
+);
