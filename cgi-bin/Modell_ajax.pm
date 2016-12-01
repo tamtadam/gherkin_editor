@@ -77,14 +77,206 @@ sub init {
     my $self = shift ;
 
     eval '$self->' . "$_" . '::init( @_ )' for @ISA ;
-    $self->{ 'DB_HANDLE' }  = $_[ 0 ]->{ DB_HANDLE } ;
-    $self->{ 'DB_Session' } = $_[ 0 ]->{ 'DB_Session' } ;
-    $self->{ "ERROR_CODE" } = [] ;
-    $self->{ "TIMES" }      = [] ;
+
+    $self->{ $_ } = $_[ 0 ]->{ $_ } for qw(DB_HANDLE DB_Session);
+
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
 
     $self ;
 } ## end sub init
+
+sub get_feature_list {
+    my $self   = shift ;
+    my $result = undef ;
+
+    $result = $self->my_select(
+                                {
+                                  'from'   => 'Feature',
+                                  'select' => 'ALL',
+                                  'sort'   => 'Title',
+                                }
+                              ) ;
+
+    if ( !$result ) {
+        $self->add_error( 'FEA_LIST' ) ;
+    } ## end if ( !$result )
+    $self->delete_expired_locks_in_feature() ;
+    $self->delete_expired_locks_in_scenario() ;
+    return $result ;
+} ## end sub get_feature_list
+
+#FEATURE-SCENARIO
+
+sub get_feature_scenario_datas {
+    my $self = shift ;
+
+    my $result = $self->my_select(
+                                   {
+                                     'from'     => 'FeatureScenario',
+                                     'select'   => 'FeatureID',
+                                     'group_by' => 'FeatureID',
+                                   }
+                                 ) ;
+    if ( !$result ) {
+        $self->add_error( 'DB_SELECT' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub get_feature_scenario_datas
+
+#OK
+sub add_new_fea_to_fealist {
+    my $self        = shift ;
+    my $src_mode_id = 1 ;
+    my $result;
+
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $_[ 0 ] ) ;
+
+    if ( $self->check_input_data_for_add_feature( @_ ) ) {
+        unless (
+                 $self->my_select(
+                                   {
+                                     'from'   => 'Feature',
+                                     'select' => 'FeatureID',
+                                     'where'  => {
+                                                  "Title" => $_[ 0 ]->{ 'Title' },
+                                                }
+                                   }
+                                 )
+               )
+        {
+            $result = $self->my_insert(
+                                                       {
+                                                         'insert' => {
+                                                                       'Title' => $_[ 0 ]->{ 'Title' },
+                                                                     },
+                                                         'table'  => 'Feature',
+                                                         'select' => 'FeatureID',
+                                                       }
+                                                     ) ;
+
+        } ## end unless ( $self->my_select(...))
+    } else {
+        $self->add_error( 'FAILEDPARAMETER' ) ;
+
+    } ## end else [ if ( $self->check_input_data_for_add_feature...)]
+
+    return $result ;
+} ## end sub add_new_fea_to_fealist
+
+#OK
+sub empty_feature {
+    my $self = shift ;
+    my $result;
+
+    $result = $self->my_delete(
+                               {
+                                 'from'  => 'FeatureScenario',
+                                 'where' => {
+                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
+                                            },
+                               }
+                             ) ;
+    $result = $self->my_delete(
+                               {
+                                 'from'  => 'Feature',
+                                 'where' => {
+                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
+                                            },
+                               }
+                             ) ;
+    return $result ;
+} ## end sub empty_feature
+
+#OK
+sub get_scenario_locked_status {
+    my $self = shift ;
+
+    my $result = $self->my_select(
+              {
+                'from'   => 'Scenario',
+                'select' => [ 'Locked AS LockedStatus', 'Description  AS ScenarioName', 'ScenarioID  AS ScenarioID', ],
+                'where' => { 'Locked' => 1 },
+              }
+    ) ;
+    if ( !$result ) {
+        $self->add_error( 'LOCKUNLOCK' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub get_scenario_locked_status
+
+
+#OK
+sub get_feature_locked_status {
+    my $self = shift ;
+
+    my $result = $self->my_select(
+           {
+             'from'   => 'Feature AS fea',
+             'select' => [ 'fea.Locked AS LockedStatus', 'fea.Title  AS FeatureName', 'fea.FeatureID  AS FeatureID', ],
+             'where' => { 'fea.Locked' => 1 },
+           }
+    ) ;
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
+    if ( !$result ) {
+        $self->add_error( 'LOCKUNLOCK' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub get_feature_locked_status
+
+
+#OK
+sub Feature_is_locked {
+    my $self = shift ;
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
+
+    $self->update_timestamp_in_feature( $_[ 0 ]->{ 'FeatureID' } ) ;
+
+    my $result = $self->my_update(
+                                   {
+                                     'update' => { 'Locked' => "1" },
+                                     'where'  => {
+                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
+                                                },
+                                     'table' => 'Feature',
+                                   }
+                                 ) ;
+
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
+
+    $self->delete_expired_locks_in_feature() ;
+    $self->delete_expired_locks_in_scenario() ;
+    return $result ;
+} ## end sub Feature_is_locked
+
+#OK
+sub Feature_is_unlocked {
+    my $self = shift ;
+
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
+
+    my $result = $self->my_update(
+                                   {
+                                     'update' => { 'Locked' => "0" },
+                                     'where'  => {
+                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
+                                                },
+                                     'table' => 'Feature',
+                                   }
+                                 ) ;
+    $self->delete_expired_locks_in_feature() ;
+    $self->delete_expired_locks_in_scenario() ;
+    return $result ;
+} ## end sub Feature_is_unlocked
+
+
+###########################################################################################
+###########################################################################################
+###########################################################################################
+###########################################################################################
+
 
 sub Save_TestRunnerJUnit {
     my $self = shift ;
@@ -217,26 +409,6 @@ sub get_testfiles {
 
 } ## end sub get_testfiles
 
-sub get_feature_list {
-    my $self   = shift ;
-    my $result = undef ;
-
-    $result = $self->my_select(
-                                {
-                                  'from'   => 'Feature',
-                                  'select' => 'ALL',
-                                  'sort'   => 'Title',
-                                }
-                              ) ;
-
-    if ( !$result ) {
-        $self->add_error( 'FEA_LIST' ) ;
-    } ## end if ( !$result )
-    $self->delete_expired_locks_in_feature() ;
-    $self->delete_expired_locks_in_scenario() ;
-    return $result ;
-} ## end sub get_feature_list
-
 sub get_regions {
     my $self   = shift ;
     my $result = undef ;
@@ -252,7 +424,7 @@ sub get_regions {
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
 
     if ( !$result ) {
-        $self->add_error( 'REGION') ;
+        $self->add_error( 'REGION' ) ;
     } ## end if ( !$result )
 
     return $result ;
@@ -279,52 +451,6 @@ sub get_testtypes {
 } ## end sub get_testtypes
 
 #OK
-sub add_new_fea_to_fealist {
-    my $self                  = shift ;
-    my $src_mode_id           = 1 ;
-    my $result->{ 'VERDICT' } = 1 ;
-
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $_[ 0 ]->{ 'Title' } ) ;
-
-    #print Dumper \@_ ;
-    if ( $self->check_input_data_for_add_feature( @_ ) ) {
-        unless (
-                 $self->my_select(
-                                   {
-                                     'from'   => 'Feature',
-                                     'select' => 'FeatureID',
-                                     'where'  => {
-                                                  "Title" => $_[ 0 ]->{ 'Title' },
-                                                }
-                                   }
-                                 )
-               )
-        {
-            $result->{ 'VERDICT' } = $self->my_insert(
-                                                       {
-                                                         'insert' => {
-                                                                       'Title'            => $_[ 0 ]->{ 'Title' },
-                                                                       'ScreenshotModeID' => 1,
-                                                                       'Test_typeID'      => 0,
-                                                                       'SnapshotID'       => 0,
-                                                                       'Mode'             => 1,
-                                                                     },
-                                                         'table'  => 'Feature',
-                                                         'select' => 'FeatureID',
-                                                       }
-                                                     ) ;
-            $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result->{ 'VERDICT' } ) ;
-
-        } ## end unless ( $self->my_select(...))
-    } else {
-
-        #print "add feature  - FAILED parameter\n" ;
-        $result = "Failed parameter" ;
-    } ## end else [ if ( $self->check_input_data_for_add_feature...)]
-    return $result ;
-} ## end sub add_new_fea_to_fealist
-
-#OK
 sub check_input_data_for_add_feature {
     my $self = shift ;
     if ( $_[ 0 ]->{ 'Title' } ) {
@@ -333,25 +459,6 @@ sub check_input_data_for_add_feature {
         return 0 ;
     } ## end else [ if ( $_[ 0 ]->{ 'Title'...})]
 } ## end sub check_input_data_for_add_feature
-
-#FEATURE-SCENARIO
-
-sub get_feature_scenario_datas {
-    my $self = shift ;
-
-    my $result = $self->my_select(
-                                   {
-                                     'from'     => 'FeatureScenario',
-                                     'select'   => 'FeatureID',
-                                     'group_by' => 'FeatureID',
-                                   }
-                                 ) ;
-    if ( !$result ) {
-        $self->add_error( 'DB_SELECT' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub get_feature_scenario_datas
 
 #OK
 sub save_scenarios_to_feature {
@@ -445,7 +552,7 @@ sub get_fea_scen_ids {
                                    },
                         "sort" => "Position",
                       }
-                    );
+                    ) ;
 } ## end sub get_fea_scen_ids
 
 sub ScenarioIds_by_FeatureID {
@@ -459,7 +566,7 @@ sub ScenarioIds_by_FeatureID {
                                    },
                         "sort" => "Position",
                       }
-                    );
+                    ) ;
 } ## end sub ScenarioIds_by_FeatureID
 
 sub get_scen_id_by_scen_in_fea_id {
@@ -473,7 +580,7 @@ sub get_scen_id_by_scen_in_fea_id {
                                    },
                         "sort" => "Position",
                       }
-                    );
+                    ) ;
 } ## end sub get_scen_id_by_scen_in_fea_id
 
 #OK
@@ -510,7 +617,7 @@ sub get_max_position {
                                    },
                         "sort" => "Position",
                       }
-                    );
+                    ) ;
 } ## end sub get_max_position
 
 sub get_act_position_by_fea_scenario_id {
@@ -526,7 +633,7 @@ sub get_act_position_by_fea_scenario_id {
                                                                 "FeatureScenarioID" => $_[ 0 ]->{ 'FeatureScenarioID' },
                                                               },
                                                  }
-                                               );
+                                               ) ;
 } ## end sub get_act_position_by_fea_scenario_id
 
 sub get_gherkintext_by_fea {
@@ -608,7 +715,7 @@ sub get_fea_and_scen_names {
                         "fea.FeatureID" => $_[ 0 ]->{ 'fea.FeatureID' }
                       }
         }
-    );
+    ) ;
 } ## end sub get_fea_and_scen_names
 
 sub check_input_data_for_get_gherkintext_by_fea {
@@ -796,30 +903,6 @@ sub get_scen_list {
     } ## end if ( !$result )
     return $result ;
 } ## end sub get_scen_list
-
-#OK
-sub empty_feature {
-    my $self = shift ;
-    my $result->{ 'VERDICT' } = 1 ;
-
-    $result->{ 'VERDICT' } = $self->my_delete(
-                                               {
-                                                 'from'  => 'FeatureScenario',
-                                                 'where' => {
-                                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
-                                                            },
-                                               }
-                                             ) ;
-    $result->{ 'VERDICT' } = $self->my_delete(
-                                               {
-                                                 'from'  => 'Feature',
-                                                 'where' => {
-                                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
-                                                            },
-                                               }
-                                             ) ;
-    return $result ;
-} ## end sub empty_feature
 
 #SCENARIO-WITH-SENTENCE
 
@@ -1228,42 +1311,6 @@ sub get_ButtonCoordinates_by_ScreenID {
     return $Coordinates ;
 } ## end sub get_ButtonCoordinates_by_ScreenID
 
-#OK
-sub get_feature_locked_status {
-    my $self = shift ;
-
-    my $result = $self->my_select(
-           {
-             'from'   => 'Feature AS fea',
-             'select' => [ 'fea.Locked AS LockedStatus', 'fea.Title  AS FeatureName', 'fea.FeatureID  AS FeatureID', ],
-             'where' => { 'fea.Locked' => 1 },
-           }
-    ) ;
-    if ( !$result ) {
-        $self->add_error( 'LOCKUNLOCK' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub get_feature_locked_status
-
-#OK
-sub get_scenario_locked_status {
-    my $self = shift ;
-
-    my $result = $self->my_select(
-              {
-                'from'   => 'Scenario',
-                'select' => [ 'Locked AS LockedStatus', 'Description  AS ScenarioName', 'ScenarioID  AS ScenarioID', ],
-                'where' => { 'Locked' => 1 },
-              }
-    ) ;
-    if ( !$result ) {
-        $self->add_error( 'LOCKUNLOCK' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub get_scenario_locked_status
-
 sub update_timestamps {
     my $self       = shift ;
     my $FeatureID  = shift ;
@@ -1330,50 +1377,6 @@ sub _delete_expired_locks_in_table {
 
     return 1 ;
 } ## end sub _delete_expired_locks_in_table
-
-#OK
-sub Feature_is_locked {
-    my $self = shift ;
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
-
-    $self->update_timestamp_in_feature( $_[ 0 ]->{ 'FeatureID' } ) ;
-
-    my $result = $self->my_update(
-                                   {
-                                     'update' => { 'Locked' => "1" },
-                                     'where'  => {
-                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
-                                                },
-                                     'table' => 'Feature',
-                                   }
-                                 ) ;
-
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
-
-    $self->delete_expired_locks_in_feature() ;
-    $self->delete_expired_locks_in_scenario() ;
-    return $result ;
-} ## end sub Feature_is_locked
-
-#OK
-sub Feature_is_unlocked {
-    my $self = shift ;
-
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
-
-    my $result = $self->my_update(
-                                   {
-                                     'update' => { 'Locked' => "0" },
-                                     'where'  => {
-                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
-                                                },
-                                     'table' => 'Feature',
-                                   }
-                                 ) ;
-    $self->delete_expired_locks_in_feature() ;
-    $self->delete_expired_locks_in_scenario() ;
-    return $result ;
-} ## end sub Feature_is_unlocked
 
 #OK
 sub Scenario_is_locked {
@@ -2993,7 +2996,7 @@ sub add_new_screen_to_screenshot_table {
                                            'table'  => 'Screenshot',
                                            'select' => 'ScreenshotID',
                                          }
-                                       );
+                                       ) ;
 } ## end sub add_new_screen_to_screenshot_table
 
 sub add_new_screen {
@@ -3247,7 +3250,7 @@ sub get_sentence_table {
                         'from'   => 'Sentence',
                         'select' => 'ALL',
                       }
-                    );
+                    ) ;
 } ## end sub get_sentence_table
 
 #OK
@@ -3589,6 +3592,5 @@ sub get_screenstatename_from_path {
 
     return $result ;
 } ## end sub get_screenstatename_from_path
-
 
 1 ;

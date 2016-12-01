@@ -1,29 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title></title>
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-  <script type="text/javascript" src="js/CommonVariables.js"></script>
-  <script type="text/javascript" src="js/GlobalVariables.js"></script>
-  <script type="text/javascript" src="js/Processor.js"></script>
-  <script type="text/javascript" src="js/Ajax.js"></script>
-  <script type="text/javascript" src="js/UseFullFunctions.js"></script>
+<meta charset="utf-8">
+<title></title>
+<link rel="stylesheet"
+	href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript" src="js/CommonVariables.js"></script>
+<script type="text/javascript" src="js/GlobalVariables.js"></script>
+<script type="text/javascript" src="js/Processor.js"></script>
+<script type="text/javascript" src="js/Ajax.js"></script>
+<script type="text/javascript" src="js/UseFullFunctions.js"></script>
+
+<script type="text/javascript" src="js/scenario_editor.js"></script>
 
 </head>
 <body>
-<div id="error">
-</div>
+	<div id="error"></div>
+    <div id = 'locked_status' style="display:none" >
 
+        <h2>Locked status</h2>
+
+        <br>
+        <h6>Scenario status</h6>
+        <div id = 'locked_Scenario'>
+        </div>
+
+        <br>
+        <h6>Feature status</h6>
+        <div id = 'locked_Feature'>
+
+        </div>
+    </div>
+
+	<div id='Feature_list' title='Feature list' width: "auto" >
+
+		<div style="">
+			<h4 id='feature_list_container' class='header'height: "auto" width: "auto" >
+				<select id="feature_list" height: "auto" width: "auto" >
+				</select>
+			</h4>
+		    <img id="add_item_to_feature_list_btn">
+            <img id="delete_item_from_feature_list_btn">
+		</div>
+	</div>
+	
+    <div id="Feature-input" style="overflow-y:scroll; overflow-x:hidden;height:768px;" >
+
+            <p id= "Kivalasztott feature" ></p>
+
+            <ul id="Scenarios_in_Feature" class="connectedSortable">
+            </ul>
+
+    </div>
+    <div id="Are_you_sure">
+    </div>
 </body>
-  <script>
-  var ret_val = new Object( { 'status' : 1 } ) ;
-
-  push_cmd( "status", JSON.stringify( new Object( data ) ) ) ;
-  ret_val = processor( send_cmd(), ret_val ) ;
-  var data    = ret_val[ 'status' ]       ;
-
-  </script>
+<script>
+    $(document).ready(function() {
+        init_page();
+    });
+</script>
 </html>
