@@ -1,6 +1,7 @@
+DROP TABLE IF EXISTS Feature;
 CREATE TABLE Feature (
-  FeatureID  int(10)      unsigned         NOT NULL AUTO_INCREMENT,
-  Title      varchar(100)                  NOT NULL,
-  Locked     tinyint(1)   unsigned DEFAULT NULL,
-  PRIMARY KEY (FeatureID),
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  FeatureID    INTEGER PRIMARY KEY   AUTOINCREMENT,
+  Title        TEXT                  NOT NULL,
+  LastModified TEXT                  NOT NULL DEFAULT "2016",
+  Locked       UNSIGNED INTEGER      DEFAULT 0
+);

@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS Scenario;
+CREATE TABLE Scenario (
+  ScenarioID    INTEGER PRIMARY KEY   AUTOINCREMENT,
+  Description   TEXT    NOT NULL,
+  Title         TEXT            ,
+  LastModified TEXT                  NOT NULL DEFAULT "2016",
+  Locked        INTEGER DEFAULT 0
+);
