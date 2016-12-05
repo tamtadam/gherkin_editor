@@ -13,6 +13,7 @@ use Errormsg ;
 use JSON ;
 use utf8 ;
 use DBConnHandler qw( $DB) ;
+use DBDispatcher qw( convert_sql );
 use constant SINGLE   => 'single' ;
 use constant MULTIPLE => 'multiple' ;
 
@@ -75,7 +76,6 @@ sub new {
 
 sub init {
     my $self = shift ;
-
     eval '$self->' . "$_" . '::init( @_ )' for @ISA ;
 
     $self->{ $_ } = $_[ 0 ]->{ $_ } for qw(DB_HANDLE DB_Session);
@@ -85,6 +85,7 @@ sub init {
     $self ;
 } ## end sub init
 
+#unit tested
 sub get_feature_list {
     my $self   = shift ;
     my $result = undef ;
@@ -96,9 +97,9 @@ sub get_feature_list {
                                   'sort'   => 'Title',
                                 }
                               ) ;
-
     if ( !$result ) {
         $self->add_error( 'FEA_LIST' ) ;
+        return $result;
     } ## end if ( !$result )
     $self->delete_expired_locks_in_feature() ;
     $self->delete_expired_locks_in_scenario() ;
@@ -124,15 +125,15 @@ sub get_feature_scenario_datas {
     return $result ;
 } ## end sub get_feature_scenario_datas
 
-#OK
+#unit tested
 sub add_new_fea_to_fealist {
     my $self        = shift ;
-    my $src_mode_id = 1 ;
     my $result;
 
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $_[ 0 ] ) ;
 
-    if ( $self->check_input_data_for_add_feature( @_ ) ) {
+    if ( $self->check_input_data_for_add_feature( @_ ) and
+         $_[ 0 ]->{ 'Title' } =~ /\w+/ ) {
         unless (
                  $self->my_select(
                                    {
@@ -155,7 +156,9 @@ sub add_new_fea_to_fealist {
                                                        }
                                                      ) ;
 
-        } ## end unless ( $self->my_select(...))
+        } else {
+            $self->add_error( 'FEATURE_NOT_ADDED' );
+        }
     } else {
         $self->add_error( 'FAILEDPARAMETER' ) ;
 
@@ -207,7 +210,7 @@ sub get_scenario_locked_status {
 } ## end sub get_scenario_locked_status
 
 
-#OK
+#unit tested
 sub get_feature_locked_status {
     my $self = shift ;
 
@@ -227,9 +230,14 @@ sub get_feature_locked_status {
 } ## end sub get_feature_locked_status
 
 
-#OK
+#unit tested
 sub Feature_is_locked {
     my $self = shift ;
+    my $feature_id = $_[ 0 ]->{ FeatureID } or do {
+        $self->add_error( 'FEATUREIDISMISSING' );
+        return;
+    };
+
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
 
     $self->update_timestamp_in_feature( $_[ 0 ]->{ 'FeatureID' } ) ;
@@ -238,7 +246,7 @@ sub Feature_is_locked {
                                    {
                                      'update' => { 'Locked' => "1" },
                                      'where'  => {
-                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
+                                                  'FeatureID' => $feature_id,
                                                 },
                                      'table' => 'Feature',
                                    }
@@ -251,17 +259,21 @@ sub Feature_is_locked {
     return $result ;
 } ## end sub Feature_is_locked
 
-#OK
+#unit tested
 sub Feature_is_unlocked {
     my $self = shift ;
-
+    my $feature_id = $_[ 0 ]->{ FeatureID } or do {
+        $self->add_error( 'FEATUREIDISMISSING' );
+        return;
+    };
+    
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
 
     my $result = $self->my_update(
                                    {
                                      'update' => { 'Locked' => "0" },
                                      'where'  => {
-                                                  'FeatureID' => $_[ 0 ]->{ 'FeatureID' }
+                                                  'FeatureID' => $feature_id,
                                                 },
                                      'table' => 'Feature',
                                    }
@@ -270,6 +282,74 @@ sub Feature_is_unlocked {
     $self->delete_expired_locks_in_scenario() ;
     return $result ;
 } ## end sub Feature_is_unlocked
+
+#unit tested
+sub update_timestamps {
+    my $self       = shift ;
+    my $FeatureID  = shift ;
+    my $ScenarioID = shift ;
+
+    if ( -1 != $FeatureID ) {
+        $self->update_timestamp_in_feature( $FeatureID ) ;
+    } ## end if ( -1 != $FeatureID )
+
+    if ( -1 != $ScenarioID ) {
+        $self->update_timestamp_in_scenario( $ScenarioID ) ;
+    } ## end if ( -1 != $ScenarioID)
+
+    $self->delete_expired_locks_in_feature() ;
+    $self->delete_expired_locks_in_scenario() ;
+} ## end sub update_timestamps
+
+
+#unit tested
+sub update_timestamp_in_feature {
+    my $self   = shift ;
+    my $fea_id = shift ;
+
+    $self->_update_timestamp_in_table( "Feature", "FeatureID", $fea_id ) ;
+} ## end sub update_timestamp_in_feature
+
+#unit tested
+sub update_timestamp_in_scenario {
+    my $self        = shift ;
+    my $scenario_id = shift ;
+
+    $self->_update_timestamp_in_table( "Scenario", "ScenarioID", $scenario_id ) ;
+} ## end sub update_timestamp_in_scenario
+
+#unit tested
+sub _update_timestamp_in_table {
+    my $self    = shift ;
+    my $table   = shift ;
+    my $id_name = shift ;
+    my $id_data = shift ;
+
+    $self->execute_sql( "UPDATE $table SET LastModified = " . convert_sql("NOW{}") .  " WHERE $id_name = ?", $id_data ) ;
+} ## end sub _update_timestamp_in_table
+
+sub delete_expired_locks_in_scenario {
+
+    $_[ 0 ]->_delete_expired_locks_in_table( "Scenario" ) ;
+} ## end sub delete_expired_locks_in_scenario
+
+sub delete_expired_locks_in_feature {
+
+    $_[ 0 ]->_delete_expired_locks_in_table( "Feature" ) ;
+} ## end sub delete_expired_locks_in_feature
+
+sub _delete_expired_locks_in_table {
+    my $self  = shift ;
+    my $table = shift ;
+
+    $self->execute_sql( convert_sql( "SQLSAFEUPDATES{0}" ) );
+
+#$gth = $self->{ 'DB_HANDLE' }->prepare( "UPDATE $table SET Locked = 0 WHERE TIME_TO_SEC( TIMEDIFF( NOW(), LastModified ) ) / 60 > 120" ) ;
+#$self->start_time( @{ [ caller(0) ] }[3], $gth ) ;
+#$res = $gth->execute() ;
+
+    return 1 ;
+} ## end sub _delete_expired_locks_in_table
 
 
 ###########################################################################################
@@ -1310,73 +1390,6 @@ sub get_ButtonCoordinates_by_ScreenID {
 
     return $Coordinates ;
 } ## end sub get_ButtonCoordinates_by_ScreenID
-
-sub update_timestamps {
-    my $self       = shift ;
-    my $FeatureID  = shift ;
-    my $ScenarioID = shift ;
-
-    if ( -1 != $FeatureID ) {
-        $self->update_timestamp_in_feature( $FeatureID ) ;
-    } ## end if ( -1 != $FeatureID )
-
-    if ( -1 != $ScenarioID ) {
-        $self->update_timestamp_in_scenario( $ScenarioID ) ;
-    } ## end if ( -1 != $ScenarioID)
-
-    $self->delete_expired_locks_in_feature() ;
-    $self->delete_expired_locks_in_scenario() ;
-} ## end sub update_timestamps
-
-sub update_timestamp_in_feature {
-    my $self   = shift ;
-    my $fea_id = shift ;
-
-    $self->_update_timestamp_in_table( "Feature", "FeatureID", $fea_id ) ;
-} ## end sub update_timestamp_in_feature
-
-sub update_timestamp_in_scenario {
-    my $self        = shift ;
-    my $scenario_id = shift ;
-
-    $self->_update_timestamp_in_table( "Scenario", "ScenarioID", $scenario_id ) ;
-} ## end sub update_timestamp_in_scenario
-
-sub _update_timestamp_in_table {
-    my $self    = shift ;
-    my $table   = shift ;
-    my $id_name = shift ;
-    my $id_data = shift ;
-
-    my $gth = $self->{ 'DB_HANDLE' }->prepare( "UPDATE $table SET LastModified = NOW() WHERE $id_name = $id_data" ) ;
-
-    my $res = $gth->execute() ;
-} ## end sub _update_timestamp_in_table
-
-sub delete_expired_locks_in_scenario {
-
-    $_[ 0 ]->_delete_expired_locks_in_table( "Scenario" ) ;
-} ## end sub delete_expired_locks_in_scenario
-
-sub delete_expired_locks_in_feature {
-
-    $_[ 0 ]->_delete_expired_locks_in_table( "Feature" ) ;
-} ## end sub delete_expired_locks_in_feature
-
-sub _delete_expired_locks_in_table {
-    my $self  = shift ;
-    my $table = shift ;
-
-    my $gth = $self->{ 'DB_HANDLE' }->prepare( "SET SQL_SAFE_UPDATES = 0" ) ;
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $gth ) ;
-    my $res = $gth->execute() ;
-
-#$gth = $self->{ 'DB_HANDLE' }->prepare( "UPDATE $table SET Locked = 0 WHERE TIME_TO_SEC( TIMEDIFF( NOW(), LastModified ) ) / 60 > 120" ) ;
-#$self->start_time( @{ [ caller(0) ] }[3], $gth ) ;
-#$res = $gth->execute() ;
-
-    return 1 ;
-} ## end sub _delete_expired_locks_in_table
 
 #OK
 sub Scenario_is_locked {
