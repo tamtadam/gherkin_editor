@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS Feature;
+CREATE TABLE Feature (
+  FeatureID    INTEGER PRIMARY KEY   AUTOINCREMENT,
+  Title        TEXT                  NOT NULL,
+  LastModified TEXT                  NOT NULL DEFAULT "2016",
+  Locked       UNSIGNED INTEGER      DEFAULT 0
+);
