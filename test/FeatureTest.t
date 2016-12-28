@@ -7,7 +7,7 @@ use lib $FindBin::RealBin;
 use lib $FindBin::RealBin . "../../../common/cgi-bin/" ;
 use lib $FindBin::RealBin . "../../cgi-bin/" ;
 
-use Test::More tests => 1;
+use Test::More tests => 6;
 
 use TestMock;
 use DBConnHandler;
@@ -153,7 +153,7 @@ subtest 'Feature_is_locked' => sub {
         from   => 'Feature',
         select => 'ALL',
         where  => {
-            FeatureID => 5 
+            FeatureID => 5
         },
     });
     is( $fea->[ 0 ]{Locked}, 1, "Locked" );
@@ -179,7 +179,7 @@ subtest 'Feature_is_unlocked' => sub {
         from   => 'Feature',
         select => 'ALL',
         where  => {
-            FeatureID => 5 
+            FeatureID => 5
         },
     });
     is( $fea->[ 0 ]{Locked}, 0, "UNLocked" );
@@ -189,3 +189,80 @@ subtest 'Feature_is_unlocked' => sub {
     is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
     is( $error[ 1 ], 'FEATUREIDISMISSING', 'Error: FEATUREIDISMISSING' );
 };
+
+subtest 'empty_feature' => sub {
+    $err_handler_mock->empty_buffers( 'add_error' );
+    $DBH->my_insert({
+        table  => 'Feature',
+        insert => {
+                   'Title' => 'TestFeature' . $_ ,
+                   'Locked' => $_ % 2,
+        },
+    }) for 0..2;
+    my $res = $ma->empty_feature({
+        FeatureID => 4
+    });
+
+    ok( 1 == $res, 'deleted successfully');
+    $res = $ma->empty_feature();
+    my @error = $err_handler_mock->add_error();
+    is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
+    is( $error[ 1 ], 'FAILEDPARAMETER', 'Error: FAILEDPARAMETER' );
+};
+
+
+subtest 'check_input_data_for_add_feature' => sub {
+    my $res = $ma->check_input_data_for_add_feature({
+        Title => 'title',
+    });
+    ok($res, "params are filled");
+    $res = $ma->check_input_data_for_add_feature();
+    ok($res == 0, 'params are not filled');
+};
+
+subtest 'add_scen_to_fea' => sub {
+    $err_handler_mock->empty_buffers( 'add_error' );
+    my $res = $ma->add_scen_to_fea({
+        "FeatureID"  => 1,
+        "ScenarioID" => 1,
+        "Position"   => 1,
+    });
+    
+    ok($res, 'add scenarion to feature');
+    $res = $ma->add_scen_to_fea({
+        "FeatureId"  => 1,
+        "ScenarioI" => 1,
+        "Position"   => 1,
+    });
+    is($res, undef, 'no new scenario feature');
+    
+    my @error = $err_handler_mock->add_error();
+    is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
+    is( $error[ 1 ], 'DB_ERROR', 'Error: DB_ERROR' );
+};
+
+subtest 'check_input_data_for_save_scenarios_to_feature' => sub {
+    my $res = $ma->check_input_data_for_save_scenarios_to_feature({
+        FeatureID => 'title',
+        ScenarioList => [],
+    });
+    ok($res, "params are filled");
+    $res = $ma->check_input_data_for_save_scenarios_to_feature();
+    ok($res == 0, 'params are not filled');
+};
+
+subtest 'save_scenarios_to_feature' => sub {
+    my $res = $ma->save_scenarios_to_feature({
+        FeatureID    => 5,
+        ScenarioList => [1,2,3,4],
+    });
+    $res = $DBH->my_select({
+        from   => 'FeatureScenario',
+        select => 'ALL',
+    });
+    ok(4 == (scalar grep { $_->{ FeatureID } == 5 } @{$res}), '4 feascen added');
+    ok(TestMock::all_greater( ( map{ $_->{ Position }; } grep { $_->{ FeatureID } == 5 } @{ $res } ) ), 'increasing');
+};
+
+
+
