@@ -167,16 +167,28 @@ sub add_new_fea_to_fealist {
     return $result ;
 } ## end sub add_new_fea_to_fealist
 
+#unit tested
+#OK
+sub check_input_data_for_add_feature {
+    my $self = shift ;
+    my $param = shift || {};
+
+    return $param->{ 'Title' } ? 1 : 0; ## end sub check_input_data_for_add_feature
+}
+
+#unit tested
 #OK
 sub empty_feature {
     my $self = shift ;
+    my $params = shift || {};
+    $self->add_error( 'FAILEDPARAMETER' ) unless $params->{ 'FeatureID' };
     my $result;
 
     $result = $self->my_delete(
                                {
                                  'from'  => 'FeatureScenario',
                                  'where' => {
-                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
+                                              FeatureID => $params->{ 'FeatureID' },
                                             },
                                }
                              ) ;
@@ -184,7 +196,7 @@ sub empty_feature {
                                {
                                  'from'  => 'Feature',
                                  'where' => {
-                                              "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
+                                              FeatureID => $params->{ 'FeatureID' },
                                             },
                                }
                              ) ;
@@ -266,7 +278,7 @@ sub Feature_is_unlocked {
         $self->add_error( 'FEATUREIDISMISSING' );
         return;
     };
-    
+
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@_ ) ;
 
     my $result = $self->my_update(
@@ -351,6 +363,197 @@ sub _delete_expired_locks_in_table {
     return 1 ;
 } ## end sub _delete_expired_locks_in_table
 
+#SCENARIO
+#OK
+sub get_features_by_scenario_id {
+    my $self   = shift ;
+    my $result = undef ;
+
+    $result = $self->my_select(
+        {
+           'from' => 'Feature AS fea',
+
+           'select' => [ 'fea.Title     AS Title', 'fea.FeatureID AS FeatureID', ],
+
+           'join' => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID = fea_scen.FeatureID )',
+
+           'where' => {
+                        "fea_scen.ScenarioID" => $_[ 0 ]->{ 'fea_scen.ScenarioID' }
+                      },
+           'group_by' => 'fea.FeatureID',
+        }
+    ) ;
+
+    return $result ;
+} ## end sub get_features_by_scenario_id
+
+#unit tested
+sub clear_scen {
+    my $self   = shift ;
+    my $result = undef ;
+
+    $result = $self->my_delete(
+                                {
+                                  'from'   => 'Scenario',
+                                  'select' => '',
+                                  'where'  => {
+                                               "ScenarioID" => $_[ 0 ]->{ 'ScenarioID' },
+                                             },
+                                }
+                              ) ;
+
+    if ( !$result ) {
+        $self->add_error( 'DELETE_SCENARIO' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub clear_scen
+
+#OK
+#unit tested
+sub add_new_scen_to_scenlist {
+    my $self         = shift ;
+    my $new_scenario = undef ;
+
+    if ( $self->check_input_data_for_add_scenario( @_ ) ) {
+        unless (
+                 $self->my_select(
+                                   {
+                                     'from'   => 'Scenario',
+                                     'select' => 'ScenarioID',
+                                     'where'  => {
+                                                  "Description" => $_[ 0 ]->{ 'Description' },
+                                                }
+                                   }
+                                 )
+               )
+        {
+            $new_scenario = $self->my_insert(
+                                              {
+                                                'insert' => {
+                                                              'Description' => $_[ 0 ]->{ 'Description' },
+                                                            },
+                                                'table'  => 'Scenario',
+                                                'select' => 'ScenarioID',
+                                              }
+                                            ) ;
+        } ## end unless ( $self->my_select(...))
+    } ## end if ( $self->check_input_data_for_add_scenario...)
+
+    if ( !$new_scenario ) {
+        $self->add_error( 'NEW_SCENARIO' ) ;
+
+    } ## end if ( !$new_scenario )
+    return $new_scenario ;
+} ## end sub add_new_scen_to_scenlist
+
+#unit tested
+sub check_input_data_for_add_scenario {
+    my $self = shift ;
+    if ( $_[ 0 ]->{ 'Description' } ) {
+        return 1 ;
+    } else {
+        return 0 ;
+    } ## end else [ if ( $_[ 0 ]->{ 'Description'...})]
+} ## end sub check_input_data_for_add_scenario
+
+#OK
+#unit tested
+sub get_scen_list {
+    my $self   = shift ;
+    my $result = undef ;
+
+    $result = $self->my_select(
+                                {
+                                  'from'   => 'Scenario',
+                                  'select' => 'ALL',
+                                  "sort"   => "Description",
+                                }
+                              ) ;
+
+    if ( !$result ) {
+        $self->add_error( 'SCENARIO_LIST' ) ;
+
+    } ## end if ( !$result )
+    return $result || [] ;
+} ## end sub get_scen_list
+
+#OK
+sub save_scenarios_to_feature {
+    my $self      = shift ;
+    my $order_cnt = 0 ;
+    my $result;
+    
+    if ( $self->check_input_data_for_save_scenarios_to_feature( @_ ) ) {
+
+        #      $self->update_timestamps( $_[ 0 ]->{ 'FeatureID' }, -1 ) ;
+        $self->my_delete(
+                          {
+                            'from'   => 'FeatureScenario',
+                            'select' => '',
+                            'where'  => {
+                                         "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
+                                       },
+                          }
+                        ) ;
+        foreach my $scenario_id ( @{ $_[ 0 ]->{ 'ScenarioList' } } ) {
+            $result = $self->my_insert(
+                                                       {
+                                                         'insert' => {
+                                                                       "FeatureID"  => $_[ 0 ]->{ 'FeatureID' },
+                                                                       "ScenarioID" => $scenario_id,
+                                                                       "Position"   => $order_cnt,
+                                                                     },
+                                                         'table'  => 'FeatureScenario',
+                                                         'select' => 'FeatureScenarioID',
+                                                       }
+                                                     ) ;
+
+            if ( $result ) {
+                $order_cnt++ ;
+            } ## end if ( $result->{ 'VERDICT'...})
+        } ## end foreach my $scenario_id ( @...)
+    } else {
+
+    } ## end else [ if ( $self->check_input_data_for_save_scenarios_to_feature...)]
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
+
+    if ( !$result ) {
+        $self->add_error( 'SAVE_SCENARIOS_FOR_FEAS' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub save_scenarios_to_feature
+
+#unit tested
+#OK
+sub check_input_data_for_save_scenarios_to_feature {
+    my $self = shift ;
+    my $param = shift || {};
+    return ( $param->{ FeatureID } and $param->{ ScenarioList } ? 1 : 0 ) ;
+} ## end sub check_input_data_for_save_scenarios_to_feature
+
+#unit tested
+sub add_scen_to_fea {
+    my $self = shift ;
+    my $param = shift || {};
+
+    my $result = $self->my_insert({
+        'insert' => {
+            "FeatureID"  => $param->{ 'FeatureID' },
+            "ScenarioID" => $param->{ 'ScenarioID' },
+            "Position"   => $param->{ 'Position' },
+        },
+        'table'  => 'FeatureScenario',
+    'select' => 'FeatureScenarioID',
+    });
+    if ( !$result ) {
+        $self->add_error( 'FEATURESCENARIO' ) ;
+
+    } ## end if ( !$result )
+
+    return $result;
+} ## end sub add_scen_to_fea
 
 ###########################################################################################
 ###########################################################################################
@@ -529,97 +732,6 @@ sub get_testtypes {
 
     return $result ;
 } ## end sub get_testtypes
-
-#OK
-sub check_input_data_for_add_feature {
-    my $self = shift ;
-    if ( $_[ 0 ]->{ 'Title' } ) {
-        return 1 ;
-    } else {
-        return 0 ;
-    } ## end else [ if ( $_[ 0 ]->{ 'Title'...})]
-} ## end sub check_input_data_for_add_feature
-
-#OK
-sub save_scenarios_to_feature {
-    my $self                  = shift ;
-    my $order_cnt             = 0 ;
-    my $result->{ 'VERDICT' } = 1 ;
-
-    if ( $self->check_input_data_for_save_scenarios_to_feature( @_ ) ) {
-
-        #      $self->update_timestamps( $_[ 0 ]->{ 'FeatureID' }, -1 ) ;
-        $self->my_delete(
-                          {
-                            'from'   => 'FeatureScenario',
-                            'select' => '',
-                            'where'  => {
-                                         "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
-                                       },
-                          }
-                        ) ;
-        foreach my $scenario_id ( @{ $_[ 0 ]->{ 'ScenarioList' } } ) {
-            $result->{ 'VERDICT' } = $self->my_insert(
-                                                       {
-                                                         'insert' => {
-                                                                       "FeatureID"  => $_[ 0 ]->{ 'FeatureID' },
-                                                                       "ScenarioID" => $scenario_id,
-                                                                       "Position"   => $order_cnt,
-                                                                     },
-                                                         'table'  => 'FeatureScenario',
-                                                         'select' => 'FeatureScenarioID',
-                                                       }
-                                                     ) ;
-
-            if ( $result->{ 'VERDICT' } ) {
-                $order_cnt++ ;
-            } ## end if ( $result->{ 'VERDICT'...})
-        } ## end foreach my $scenario_id ( @...)
-    } else {
-
-    } ## end else [ if ( $self->check_input_data_for_save_scenarios_to_feature...)]
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
-
-    if ( !$result ) {
-        $self->add_error( 'SAVE_SCENARIOS_FOR_FEAS' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub save_scenarios_to_feature
-
-#OK
-sub check_input_data_for_save_scenarios_to_feature {
-    my $self = shift ;
-    if (     $_[ 0 ]->{ 'FeatureID' }
-         and $_[ 0 ]->{ 'ScenarioList' } )
-    {
-        return 1 ;
-    } else {
-        return 0 ;
-    } ## end else [ if ( $_[ 0 ]->{ 'FeatureID'...})]
-} ## end sub check_input_data_for_save_scenarios_to_feature
-
-sub add_scen_to_fea {
-    my $self = shift ;
-
-    my $order_cnt = 0 ;
-    my $result->{ 'VERDICT' } = 1 ;
-
-    $result->{ 'VERDICT' } = $self->my_insert(
-        {
-           'insert' => {
-               "FeatureID"  => $_[ 0 ]->{ 'FeatureID' },
-               "ScenarioID" => $_[ 0 ]->{ 'ScenarioID' },
-               "Position"   => $_[ 0 ]->{ 'Position' },
-
-                       },
-           'table'  => 'FeatureScenario',
-           'select' => 'FeatureScenarioID',
-        }
-    ) ;
-
-    return $result ;
-} ## end sub add_scen_to_fea
 
 sub get_fea_scen_ids {
     my $self = shift ;
@@ -872,117 +984,6 @@ sub check_input_data_for_delete_scenario_from_feature {
         return 0 ;
     } ## end else [ if ( $_[ 0 ]->{ 'ScenarioID'...})]
 } ## end sub check_input_data_for_delete_scenario_from_feature
-
-#SCENARIO
-#OK
-sub get_features_by_scenario_id {
-    my $self   = shift ;
-    my $result = undef ;
-
-    $result = $self->my_select(
-        {
-           'from' => 'Feature AS fea',
-
-           'select' => [ 'fea.Title     AS Title', 'fea.FeatureID AS FeatureID', ],
-
-           'join' => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID = fea_scen.FeatureID )',
-
-           'where' => {
-                        "fea_scen.ScenarioID" => $_[ 0 ]->{ 'fea_scen.ScenarioID' }
-                      },
-           'group_by' => 'fea.FeatureID',
-        }
-    ) ;
-
-    return $result ;
-} ## end sub get_features_by_scenario_id
-
-sub clear_scen {
-    my $self   = shift ;
-    my $result = undef ;
-
-    $result = $self->my_delete(
-                                {
-                                  'from'   => 'Scenario',
-                                  'select' => '',
-                                  'where'  => {
-                                               "ScenarioID" => $_[ 0 ]->{ 'ScenarioID' },
-                                             },
-                                }
-                              ) ;
-
-    if ( !$result ) {
-        $self->add_error( 'DELETE_SCENARIO' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub clear_scen
-
-#OK
-sub add_new_scen_to_scenlist {
-    my $self         = shift ;
-    my $new_scenario = undef ;
-
-    if ( $self->check_input_data_for_add_scenario( @_ ) ) {
-        unless (
-                 $self->my_select(
-                                   {
-                                     'from'   => 'Scenario',
-                                     'select' => 'ScenarioID',
-                                     'where'  => {
-                                                  "Description" => $_[ 0 ]->{ 'Description' },
-                                                }
-                                   }
-                                 )
-               )
-        {
-            $new_scenario = $self->my_insert(
-                                              {
-                                                'insert' => {
-                                                              'Description' => $_[ 0 ]->{ 'Description' },
-                                                            },
-                                                'table'  => 'Scenario',
-                                                'select' => 'ScenarioID',
-                                              }
-                                            ) ;
-        } ## end unless ( $self->my_select(...))
-    } ## end if ( $self->check_input_data_for_add_scenario...)
-
-    if ( !$new_scenario ) {
-        $self->add_error( 'NEW_SCENARIO' ) ;
-
-    } ## end if ( !$new_scenario )
-    return $new_scenario ;
-} ## end sub add_new_scen_to_scenlist
-
-sub check_input_data_for_add_scenario {
-    my $self = shift ;
-    if ( $_[ 0 ]->{ 'Description' } ) {
-        return 1 ;
-    } else {
-        return 0 ;
-    } ## end else [ if ( $_[ 0 ]->{ 'Description'...})]
-} ## end sub check_input_data_for_add_scenario
-
-#OK
-sub get_scen_list {
-    my $self   = shift ;
-    my $result = undef ;
-
-    $result = $self->my_select(
-                                {
-                                  'from'   => 'Scenario',
-                                  'select' => 'ALL',
-                                  "sort"   => "Description",
-                                }
-                              ) ;
-
-    if ( !$result ) {
-        $self->add_error( 'SCENARIO_LIST' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub get_scen_list
 
 #SCENARIO-WITH-SENTENCE
 
