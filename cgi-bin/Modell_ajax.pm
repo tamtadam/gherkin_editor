@@ -342,19 +342,19 @@ sub _update_timestamp_in_table {
 
 sub delete_expired_locks_in_scenario {
 
-    $_[ 0 ]->_delete_expired_locks_in_table( "Scenario" ) ;
+    #$_[ 0 ]->_delete_expired_locks_in_table( "Scenario" ) ;
 } ## end sub delete_expired_locks_in_scenario
 
 sub delete_expired_locks_in_feature {
 
-    $_[ 0 ]->_delete_expired_locks_in_table( "Feature" ) ;
+    #$_[ 0 ]->_delete_expired_locks_in_table( "Feature" ) ;
 } ## end sub delete_expired_locks_in_feature
 
 sub _delete_expired_locks_in_table {
     my $self  = shift ;
     my $table = shift ;
 
-    $self->execute_sql( convert_sql( "SQLSAFEUPDATES{0}" ) );
+    #$self->execute_sql( convert_sql( "SQLSAFEUPDATES{0}" ) );
 
 #$gth = $self->{ 'DB_HANDLE' }->prepare( "UPDATE $table SET Locked = 0 WHERE TIME_TO_SEC( TIMEDIFF( NOW(), LastModified ) ) / 60 > 120" ) ;
 #$self->start_time( @{ [ caller(0) ] }[3], $gth ) ;
@@ -380,7 +380,8 @@ sub get_features_by_scenario_id {
            'where' => {
                         "fea_scen.ScenarioID" => $_[ 0 ]->{ 'fea_scen.ScenarioID' }
                       },
-           'group_by' => 'fea.FeatureID',
+            'group_by' => 'fea.FeatureID',
+			'order_by' => 'fea.Title',
         }
     ) ;
 
