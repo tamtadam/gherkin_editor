@@ -178,7 +178,7 @@ sub check_input_data_for_add_feature {
 
 #unit tested
 #OK
-sub empty_feature {
+sub delete_feature {
     my $self = shift ;
     my $params = shift || {};
     $self->add_error( 'FAILEDPARAMETER' ) unless $params->{ 'FeatureID' };
@@ -194,14 +194,14 @@ sub empty_feature {
                              ) ;
     $result = $self->my_delete(
                                {
-                                 'from'  => 'FeatureScenario',
+                                 'from'  => 'Feature',
                                  'where' => {
                                               FeatureID => $params->{ 'FeatureID' },
                                             },
                                }
                              ) ;
     return $result ;
-} ## end sub empty_feature
+} ## end sub delete_feature
 
 #OK
 sub get_scenario_locked_status {
