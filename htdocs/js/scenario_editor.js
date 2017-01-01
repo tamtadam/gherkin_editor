@@ -119,7 +119,7 @@ function delete_item_from_feature_list( feature_id ) {
 
 function clear_feature(selected_fea_id) {
     clear_feature_HTML();
-    push_cmd("empty_feature", JSON.stringify({
+    push_cmd("delete_feature", JSON.stringify({
         'FeatureID': selected_fea_id
     }));
     processor(send_cmd());

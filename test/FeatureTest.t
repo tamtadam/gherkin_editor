@@ -190,7 +190,7 @@ subtest 'Feature_is_unlocked' => sub {
     is( $error[ 1 ], 'FEATUREIDISMISSING', 'Error: FEATUREIDISMISSING' );
 };
 
-subtest 'empty_feature' => sub {
+subtest 'delete_feature' => sub {
     $err_handler_mock->empty_buffers( 'add_error' );
     $DBH->my_insert({
         table  => 'Feature',
@@ -199,12 +199,12 @@ subtest 'empty_feature' => sub {
                    'Locked' => $_ % 2,
         },
     }) for 0..2;
-    my $res = $ma->empty_feature({
+    my $res = $ma->delete_feature({
         FeatureID => 4
     });
 
     ok( 1 == $res, 'deleted successfully');
-    $res = $ma->empty_feature();
+    $res = $ma->delete_feature();
     my @error = $err_handler_mock->add_error();
     is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
     is( $error[ 1 ], 'FAILEDPARAMETER', 'Error: FAILEDPARAMETER' );
