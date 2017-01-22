@@ -14,6 +14,8 @@ use JSON ;
 use utf8 ;
 use DBConnHandler qw( $DB) ;
 use DBDispatcher qw( convert_sql );
+use Email;
+use Template;
 use constant SINGLE   => 'single' ;
 use constant MULTIPLE => 'multiple' ;
 
@@ -484,7 +486,7 @@ sub save_scenarios_to_feature {
     my $self      = shift ;
     my $order_cnt = 0 ;
     my $result;
-    
+
     if ( $self->check_input_data_for_save_scenarios_to_feature( @_ ) ) {
 
         #      $self->update_timestamps( $_[ 0 ]->{ 'FeatureID' }, -1 ) ;
@@ -555,6 +557,84 @@ sub add_scen_to_fea {
 
     return $result;
 } ## end sub add_scen_to_fea
+
+
+sub saveNewUser {
+    my $self  = shift;
+    my $param = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], $param );
+
+    $self->add_error( 'PARAM_ERROR' ) and return unless $self->check_input_data_for_save_new_user( $param );
+    my $res = $self->my_select({
+        from => 'partner',
+        where => {
+            email => $param->{ email }
+        }
+    });
+
+    $self->add_error( 'USER_EXISTS' ) and return if $res;
+
+    $param->{activated} = 0;
+
+    $param->{ partner_id } = $self->my_insert(
+        {
+            table  => 'partner',
+            insert => {
+                map { $_ => $param->{ $_ } } qw(email username name password)
+            },
+            select => 'partner_id',
+       }
+    );
+    if ( $param->{ partner_id } ) {
+        $self->send_activation_request( $param );
+    }
+    return $param->{ partner_id };
+}
+
+sub send_activation_request {
+    my $self = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+    my $param = shift || return ;
+    my $templ = Template->new({
+        "TYPE"   => Template::TYPE->{ FILE },
+        "SOURCE" => "./templates/activation_link.tmpl",
+    }) ;
+
+    $templ->fill_in({
+        USERNAME => $param->{ name },
+        URL      => Cfg::get_data('CGIURL') . '?' . "ValidateUser=\"" . $param->{ partner_id } . '"'
+    });
+
+    Email::send_mail({
+        to          => $param->{ email },
+        body        => $templ->return_string(),
+        subject     => 'Activation link',
+        contenttype => 'text/html',
+    });
+}
+
+sub check_input_data_for_save_new_user {
+    my $self = shift ;
+    my $param = shift || {};
+    return ( ( scalar grep { $_ } map { $param->{ $_ } } qw(email username name password) ) == 4 ) ;
+} ## end sub check_input_data_for_save_scenarios_to_feature
+
+
+sub ValidateUser {
+    my $self = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+
+    my $uid  = shift;
+    $self->my_update({
+        table  => 'partner',
+        update => {
+            activated => 1
+        },
+        where => {
+            partner_id => $uid,
+        }
+    });
+}
 
 ###########################################################################################
 ###########################################################################################

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS partner (
+  partner_id INTEGER      NOT NULL     PRIMARY KEY      AUTO_INCREMENT,
+  username   TEXT     DEFAULT NULL,
+  password   TEXT     DEFAULT NULL,
+  szul_datum datetime DEFAULT NULL,
+  name       TEXT     DEFAULT NULL,
+  email      TEXT     DEFAULT NULL,
+  activated  INTEGER   NOT NULL DEFAULT '0',
+  PRIMARY KEY (partner_id)
+);
