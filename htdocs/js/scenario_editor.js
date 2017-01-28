@@ -10,8 +10,8 @@ function init_page_DB() {
     FEATURE_SELECT_LIST  = processed_data['get_feature_list'];
     FEATURE_SCENARIO_IDS = processed_data['get_feature_scenario_datas'];
 	SCENARIO_SELECT_LIST = processed_data['get_scen_list'];
+	get_locked_status();
 }
-
 
 function fill_feature_list()
 {
@@ -29,15 +29,33 @@ function fill_feature_list()
 
 function fill_scenario_list() {
     document.getElementById("scenario_list").innerHTML = "";
-    var scenario_list = create_select_list('scenario_list_name', 'scenario_list', SCENARIO_SELECT_LIST, null, { "prefix" : FEATURE_PREFIX, "id" : "ScenarioID", "name" : "Description" });
+    var scenario_list = create_select_list('scenario_list_name', 'scenario_list', SCENARIO_SELECT_LIST, null, { "prefix" : SCENARIO_PREFIX, "id" : "ScenarioID", "name" : "Description" });
 	
     document.getElementById("scenario_list_container").innerHTML = "";
     document.getElementById("scenario_list_container").appendChild(scenario_list);
-    //set_scen_list_items_to_empty();
+    set_scen_list_items_to_empty();
     //set_css_for_empty_scenarios();
 
     create_button_as_img('delete_item_from_scenario_list_btn', Are_you_sure_you_want_to_delete_scenario, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_scenario_list_btn', add_new_scenario_to_scenario_list, "Add item", "img/add.png");	
+}
+
+function set_scen_list_items_to_empty() {
+    for (var item in SCENARIO_SELECT_LIST) {
+        var selectlist = document.getElementById(SCENARIO_PREFIX + SCENARIO_SELECT_LIST[item]['ScenarioID']);
+        selectlist.setAttribute('class', 'empty');
+    }
+}
+
+function set_css_for_empty_scenarios() {
+	/*
+    for (var item in scenario_with_sentence) {
+        var selectlist = document.getElementById(SCENARIO_PREFIX + scenario_with_sentence[item]['ScenarioID']);
+        if( selectlist != null ){
+            selectlist.setAttribute('class', 'not_empty');
+        }
+    }
+    */
 }
 
 function add_new_scenario_to_scenario_list() {
@@ -113,11 +131,11 @@ function Are_you_sure_you_want_to_delete_feature() {
 }
 
 function delete_item_from_feature_list( feature_id ) {
-    clear_feature( feature_id );
+    delete_feature( feature_id );
     update_feature_and_scenario_list();
 }
 
-function clear_feature(selected_fea_id) {
+function delete_feature(selected_fea_id) {
     clear_feature_HTML();
     push_cmd("delete_feature", JSON.stringify({
         'FeatureID': selected_fea_id
@@ -181,7 +199,6 @@ function Scenario_status(async) {
 
     if (async) {
         send_cmd(async);
-
     } else {
         ret_val = processor(send_cmd(async), ret_val);
     }
@@ -244,12 +261,11 @@ function init_page() {
 
     document.getElementById('feature_list').ondblclick = select_feature;
     document.getElementById('scenario_list').ondblclick = add_scenario_to_feature;
-
 	
     setInterval(function() {
         get_locked_status();
-    }, 10000);
-    
+    }, 15000);
+
 }
 
 function select_feature () {
@@ -284,20 +300,40 @@ function select_feature () {
 }
 
 function add_scenario_to_feature() {
-    var selected_scen_id   = document.getElementById("scenario_list").value;
-    var li_number          = get_li_number_from_id("Scenarios_in_Feature");
-    var selected_scen_name = get_scenario_name(selected_scen_id);
-    var li_id              = "scenario_in_feature" + li_number;
+	if ( ACTUAL_FEATURE == -1 || feature_is_locked(ACTUAL_FEATURE)) {
+		$('#Alert_dialog').dialog({
+	        width: 500,
+	        height: 150,
+	        position: [600, 600],
+	        buttons:
+	        {
+	            "Close": {
+	            	text: 'Close',
+	                click: function() {
+	                    $(this).dialog("close");
+	                }
+	            }
+	        }
+	    });
 
-    add_new_scenario_to_feature({
-        'feature_id'   : ACTUAL_FEATURE,
-        'scenario_id'  : selected_scen_id,
-        'scenario_data': selected_scen_name,
-        'scen_infea_id': li_id,
-        'position'     : li_number,
-    });
+		document.getElementById("Alert_dialog").innerHTML = 'Feature is locked or not selected!';
 
-    update_scenario_list_in_feature();
+	} else {
+        var selected_scen_id   = document.getElementById("scenario_list").value;
+        var li_number          = get_li_number_from_id("Scenarios_in_Feature");
+        var selected_scen_name = get_scenario_name(selected_scen_id);
+        var li_id              = "scenario_in_feature" + li_number;
+
+        add_new_scenario_to_feature({
+            'feature_id'   : ACTUAL_FEATURE,
+            'scenario_id'  : selected_scen_id,
+            'scenario_data': selected_scen_name,
+            'scen_infea_id': li_id,
+            'position'     : li_number,
+        });
+
+        update_scenario_list_in_feature();
+    }
 }
 
 function add_new_scenario_to_feature(ids) {
@@ -412,23 +448,44 @@ function modify_feature() {
 function open_dialog_for_scenarios_in_feauture() {
 	//delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
 	
-	create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
-	create_button_as_img('are_you_sure_clear_feature', are_you_sure_clear_feature, 'Clear Feaure', "img/clear.png");
-	create_button_as_img('save_scenarios_to_feature',  save_scenarios_to_feature,  'Save Feaure', "img/add.png");
+	if (FEATURE_LOCKED_BY_ME == false && feature_is_locked(ACTUAL_FEATURE)) {
+		create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
+		$('#Alert_dialog').dialog({
+	        width: 500,
+	        height: 150,
+	        position: [600, 600],
+	        buttons:
+	        {
+	            "Close": {
+	            	text: 'Close',
+	                click: function() {
+	                    $(this).dialog("close");
+	                }
+	            }
+	        }
+	    });
 
-    //$('#get_feature_text').hide();
+		document.getElementById("Alert_dialog").innerHTML = 'Feature is locked!';
 
-    var ret_val = save_feature_file();
-    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
+	} else {
+		create_button_as_img('are_you_sure_clear_feature', Are_you_sure_you_want_to_delete_feature, 'Clear Feaure', "img/clear.png");
+		create_button_as_img('save_scenarios_to_feature',  save_scenarios_to_feature,  'Save Feaure', "img/add.png");
+
+	    //$('#get_feature_text').hide();
+
+	    var ret_val = save_feature_file();
+	    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
+	}
+
     document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + get_feature_name_by_id(ACTUAL_FEATURE);
 }
 
 function close_feature () {
     if (FEATURE_LOCKED_BY_ME == true) {
         set_Feature_unlocked(ACTUAL_FEATURE);
-        clear_feature_HTML();
-        document.getElementById("Scenarios_in_Feature_title").innerHTML = 'No feature selected';
     }
+    clear_feature_HTML();
+    document.getElementById("Scenarios_in_Feature_title").innerHTML = 'No feature selected';
 }
 
 function clear_feature_HTML() {
@@ -459,25 +516,21 @@ function update_scenario_list_in_feature() {
             li_id               = "scenario_in_feature" + i;
             scenario_in_feature = "scenario_in_feature" + i;
 
-            delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
-            edit_scen_from_fea_btn1 = create_button_as_img("edit_scen_from_fea_btn_" + li_id, edit_scenario, "Add scenario", "img/Edit-Document-icon.png");
-            modify_scen = create_button_as_img("edit_scen_from_fea_btn_" + li_id, rename_scenario_HTML, "Add scenario", "img/update.png");
+            if ( feature_is_locked( ACTUAL_FEATURE ) ) {
+                delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
+                edit_scen_from_fea_btn1 = create_button_as_img("edit_scen_from_fea_btn_" + li_id, edit_scenario, "Add scenario", "img/Edit-Document-icon.png");
+                modify_scen = create_button_as_img("edit_scen_from_fea_btn_" + li_id, rename_scenario_HTML, "Add scenario", "img/update.png");
 
-            scenario_id = scenario_list_in_fea[i]['ScenarioID'];
-            scenario_name = get_scenario_name(scenario_list_in_fea[i]['ScenarioID']);
-            scenario_data = scenario_name;
+                $("#" + li_id).append(delete_scen_from_fea_btn1);
+                $("#" + li_id).append(edit_scen_from_fea_btn1);
+                $("#" + li_id).append(modify_scen);
+            }
 
             $("#Scenarios_in_Feature").append(create_li({
                 "id": li_id,
-                'value': scenario_id
+                'value': scenario_list_in_fea[i]['ScenarioID']
             }));
-            $("#" + li_id).text(scenario_name);
-
-            $("#" + li_id).append(delete_scen_from_fea_btn1);
-
-            $("#" + li_id).append(edit_scen_from_fea_btn1);
-
-            $("#" + li_id).append(modify_scen);
+            $("#" + li_id).text( get_scenario_name(scenario_list_in_fea[i]['ScenarioID']) );
 
             SCENARIOS_IN_FEATURE[li_id] = {
                 'btn_list': [edit_scen_from_fea_btn1, delete_scen_from_fea_btn1],
@@ -522,7 +575,7 @@ function create_link_for_DownloadFile () {
 
 function Are_you_sure_you_want_to_delete_scenario() {
     var selected_scen_id,
-	    scenario_name, 
+	    scenario_name,
 	    num_of_feas;
 	
 	selected_scen_id = document.getElementById("scenario_list").value;
@@ -587,7 +640,7 @@ function get_feature_number_by_scen_id() {
     }));
 
     ret_val = processor(send_cmd());
- 
+
     return ret_val['get_features_by_scenario_id'];
 }
 
@@ -629,36 +682,6 @@ function clear_scenario() {
     update_scenario_list_in_feature();
 
     $("#Delete_scenario").dialog("close");
-}
-
-function are_you_sure_clear_feature() {
-    var feature_name = get_feature_name(ACTUAL_FEATURE);
-
-    $("#Are_you_sure").dialog({
-        width: 800,
-        height: 200,
-        position: [600, 600],
-        buttons:
-        {
-            "Delete scenarios": {
-                text: 'Delete all scenarios',
-                click: function() {
-                    $(this).dialog("close");
-                    clear_feature(ACTUAL_FEATURE);
-                    update_scenario_list_in_feature();
-                    update_feature_and_scenario_list();
-                }
-            },
-            "Cancel": {
-                text: 'Not now',
-                click: function() {
-                    $(this).dialog("close");
-                }
-            }
-        }
-    });
-
-    $('#Are_you_sure').dialog('option', 'title', "Are you sure do you want" + "\n" + "to delete all scenarios" + "\n" + "from " + feature_name + " feature?");
 }
 
 function save_scenarios_to_feature() {

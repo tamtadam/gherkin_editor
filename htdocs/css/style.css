@@ -123,6 +123,14 @@ pre {
 
 .ui-state-error {border: 1px solid #cd0a0a; background: #fef1ec url(images/fef1ec_40x100_textures_05_inset_soft_95.png) 50% bottom repeat-x; color: #cd0a0a; }
 
+.empty{
+    color: grey;
+}
+
+.not_empty{
+    color: black;
+}
+
 
 
 
