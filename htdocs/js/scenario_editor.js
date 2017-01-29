@@ -19,8 +19,16 @@ function fill_feature_list()
 
     document.getElementById("feature_list_container").innerHTML = "";
     document.getElementById("feature_list_container").appendChild(feature_list);
-    set_features_to_empty();
-    set_css_for_none_empty_feature_list();
+
+    $(feature_list).find('option').map(function(i, j){ $( j ).addClass('empty') } );
+
+    $(feature_list).find('option').get().filter(function(i,j){
+    	return $.grep(FEATURE_SCENARIO_IDS, function(k,l){
+    		return i.value == k.FeatureID;
+    	}).length > 0;
+    }).map(function(i, j){
+    	$( i ).addClass('not_empty') ;
+    });
 
     create_button_as_img('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_feature_list_btn', add_new_feature_to_feature_list, "Add item", "img/add.png");
@@ -33,29 +41,11 @@ function fill_scenario_list() {
 	
     document.getElementById("scenario_list_container").innerHTML = "";
     document.getElementById("scenario_list_container").appendChild(scenario_list);
-    set_scen_list_items_to_empty();
-    //set_css_for_empty_scenarios();
+
+    $(scenario_list).find('option').map(function(i, j){ $( j ).addClass('empty') } );
 
     create_button_as_img('delete_item_from_scenario_list_btn', Are_you_sure_you_want_to_delete_scenario, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_scenario_list_btn', add_new_scenario_to_scenario_list, "Add item", "img/add.png");	
-}
-
-function set_scen_list_items_to_empty() {
-    for (var item in SCENARIO_SELECT_LIST) {
-        var selectlist = document.getElementById(SCENARIO_PREFIX + SCENARIO_SELECT_LIST[item]['ScenarioID']);
-        selectlist.setAttribute('class', 'empty');
-    }
-}
-
-function set_css_for_empty_scenarios() {
-	/*
-    for (var item in scenario_with_sentence) {
-        var selectlist = document.getElementById(SCENARIO_PREFIX + scenario_with_sentence[item]['ScenarioID']);
-        if( selectlist != null ){
-            selectlist.setAttribute('class', 'not_empty');
-        }
-    }
-    */
 }
 
 function add_new_scenario_to_scenario_list() {
@@ -66,26 +56,8 @@ function add_new_scenario_to_scenario_list() {
         'Description': scenario_name,
     }));
     processor(send_cmd());
-	
-	update_scenario_list();
-}
 
-function set_css_for_none_empty_feature_list() {
-    for (var item in FEATURE_SCENARIO_IDS) {
-        var fea_selectlist = document.getElementById(FEATURE_PREFIX + FEATURE_SCENARIO_IDS[item]['FeatureID']);
-        fea_selectlist.setAttribute('class', 'not_empty');
-    }
-}
-
-function set_features_to_empty() {
-    var fea_selectlist;
-    var id;
-
-    for (var item in FEATURE_SELECT_LIST) {
-        id = FEATURE_PREFIX + FEATURE_SELECT_LIST[item]['FeatureID'];
-        fea_selectlist = document.getElementById(id);
-        fea_selectlist.setAttribute('class', 'empty');
-    }
+    update_scenario_list();
 }
 
 function add_new_feature_to_feature_list() {
@@ -116,6 +88,9 @@ function Are_you_sure_you_want_to_delete_feature() {
                 click: function() {
                     $(this).dialog("close");
                     var feature_id = document.getElementById("feature_list").value;
+                    if ( ACTUAL_FEATURE  == feature_id ) {
+                    	close_feature();
+                    }
                     delete_item_from_feature_list( feature_id );
                 }
 
@@ -136,7 +111,7 @@ function delete_item_from_feature_list( feature_id ) {
 }
 
 function delete_feature(selected_fea_id) {
-    clear_feature_HTML();
+	$("#Scenarios_in_Feature").children().remove();
     push_cmd("delete_feature", JSON.stringify({
         'FeatureID': selected_fea_id
     }));
@@ -300,9 +275,10 @@ function select_feature () {
 }
 
 function add_scenario_to_feature() {
-	if ( ACTUAL_FEATURE == -1 || feature_is_locked(ACTUAL_FEATURE)) {
+	if ( ACTUAL_FEATURE == -1 || ( FEATURE_LOCKED_BY_ME == false ) ) {
 		$('#Alert_dialog').dialog({
 	        width: 500,
+	        title: 'Feature is locked or not selected!',
 	        height: 150,
 	        position: [600, 600],
 	        buttons:
@@ -316,12 +292,10 @@ function add_scenario_to_feature() {
 	        }
 	    });
 
-		document.getElementById("Alert_dialog").innerHTML = 'Feature is locked or not selected!';
-
 	} else {
         var selected_scen_id   = document.getElementById("scenario_list").value;
         var li_number          = get_li_number_from_id("Scenarios_in_Feature");
-        var selected_scen_name = get_scenario_name(selected_scen_id);
+        var selected_scen_name = $('#' + this.id).parent().find('span').html();
         var li_id              = "scenario_in_feature" + li_number;
 
         add_new_scenario_to_feature({
@@ -355,17 +329,6 @@ function get_feature_name() {
             return FEATURE_SELECT_LIST[item]['Title'];
         }
     }
-}
-
-function get_scenario_name(scenario_id) {
-    var selected_scen_name;
-    for (var item in SCENARIO_SELECT_LIST) {
-        if (SCENARIO_SELECT_LIST[item]['ScenarioID'] == scenario_id) {
-            selected_scen_name = SCENARIO_SELECT_LIST[item]['Description'];
-            break;
-        }
-    }
-    return selected_scen_name;
 }
 
 function set_Feature_locked(feature_id) {
@@ -448,10 +411,10 @@ function modify_feature() {
 function open_dialog_for_scenarios_in_feauture() {
 	//delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
 	
-	if (FEATURE_LOCKED_BY_ME == false && feature_is_locked(ACTUAL_FEATURE)) {
-		create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
+	if ( FEATURE_LOCKED_BY_ME == false ) {
 		$('#Alert_dialog').dialog({
 	        width: 500,
+	        title: 'Feature is locked!',
 	        height: 150,
 	        position: [600, 600],
 	        buttons:
@@ -465,18 +428,14 @@ function open_dialog_for_scenarios_in_feauture() {
 	        }
 	    });
 
-		document.getElementById("Alert_dialog").innerHTML = 'Feature is locked!';
-
 	} else {
-		create_button_as_img('are_you_sure_clear_feature', Are_you_sure_you_want_to_delete_feature, 'Clear Feaure', "img/clear.png");
 		create_button_as_img('save_scenarios_to_feature',  save_scenarios_to_feature,  'Save Feaure', "img/add.png");
-
 	    //$('#get_feature_text').hide();
 
 	    var ret_val = save_feature_file();
 	    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
 	}
-
+	create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
     document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + get_feature_name_by_id(ACTUAL_FEATURE);
 }
 
@@ -484,15 +443,9 @@ function close_feature () {
     if (FEATURE_LOCKED_BY_ME == true) {
         set_Feature_unlocked(ACTUAL_FEATURE);
     }
-    clear_feature_HTML();
+    $("#Scenarios_in_Feature").children().remove();
     document.getElementById("Scenarios_in_Feature_title").innerHTML = 'No feature selected';
 }
-
-function clear_feature_HTML() {
-    var li_list = $("#Scenarios_in_Feature").children();
-    li_list.remove();
-}
-
 
 //TODO: refactor
 function update_scenario_list_in_feature() {
@@ -516,7 +469,14 @@ function update_scenario_list_in_feature() {
             li_id               = "scenario_in_feature" + i;
             scenario_in_feature = "scenario_in_feature" + i;
 
-            if ( feature_is_locked( ACTUAL_FEATURE ) ) {
+            $("#Scenarios_in_Feature").append(create_li({
+                "id": li_id,
+                'value': scenario_list_in_fea[i]['ScenarioID']
+            }));
+
+            $("#" + li_id).append( create_span({ text :  scenario_list_in_fea[i]['ScenarioName'] }) );
+
+            if ( FEATURE_LOCKED_BY_ME ) {
                 delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
                 edit_scen_from_fea_btn1 = create_button_as_img("edit_scen_from_fea_btn_" + li_id, edit_scenario, "Add scenario", "img/Edit-Document-icon.png");
                 modify_scen = create_button_as_img("edit_scen_from_fea_btn_" + li_id, rename_scenario_HTML, "Add scenario", "img/update.png");
@@ -525,12 +485,6 @@ function update_scenario_list_in_feature() {
                 $("#" + li_id).append(edit_scen_from_fea_btn1);
                 $("#" + li_id).append(modify_scen);
             }
-
-            $("#Scenarios_in_Feature").append(create_li({
-                "id": li_id,
-                'value': scenario_list_in_fea[i]['ScenarioID']
-            }));
-            $("#" + li_id).text( get_scenario_name(scenario_list_in_fea[i]['ScenarioID']) );
 
             SCENARIOS_IN_FEATURE[li_id] = {
                 'btn_list': [edit_scen_from_fea_btn1, delete_scen_from_fea_btn1],
@@ -548,7 +502,41 @@ function edit_scenario(DIALOG_WITHOUT_FEATURE) {
 }
 
 function rename_scenario_HTML() {
-	alert('rename_scenario_HTML');
+    var old_scenario_id = $('#' + this.id).parent().val();
+    var scen_id = this.id;
+    $('#new_scenario_name').val( $('#' + old_scenario_id ).parent().find('span').html() );
+
+    $('#RenameScenarioDialog').dialog({
+        width: 500,
+        title: "Please enter new, changed ScenarioName",
+        height: 150,
+        position: [600, 600],
+        buttons:
+        {
+            "Confirm": {
+            	text: 'Confirm',
+                click: function() {
+                    rename_scenario( $('#new_scenario_name').val(), old_scenario_id );
+                    $('#'+scen_id).parent().find('span').html( $('#new_scenario_name').val() );
+                    $(this).dialog("close");
+                }
+            },
+            "Close": {
+            	text: 'Close',
+                click: function() {
+                    $(this).dialog("close");
+                }
+            },
+        }
+    });
+}
+
+function rename_scenario(new_scenario_name, old_scenario_id) {
+    push_cmd("rename_scenario", JSON.stringify({
+        'ScenarioID': old_scenario_id,
+        'NewScenarioName' : new_scenario_name
+    }));
+    processor(send_cmd());
 }
 
 function delete_scenariolist_in_feature_HTML() {
@@ -579,7 +567,7 @@ function Are_you_sure_you_want_to_delete_scenario() {
 	    num_of_feas;
 	
 	selected_scen_id = document.getElementById("scenario_list").value;
-    scenario_name    = get_scenario_name(selected_scen_id);
+    scenario_name    = $('#' + selected_scen_id).parent().find('span').html();
 	num_of_feas      = get_feature_number_by_scen_id(selected_scen_id);
 	
     if (num_of_feas !== null) {
@@ -615,7 +603,7 @@ function Are_you_sure_you_want_to_delete_scenario() {
                 "Delete scenarios": {
                     text: 'Delete scenario',
                     click: function() {
-                        clear_scenario();
+                        delete_scenario();
                     }
 
                 },
@@ -647,7 +635,7 @@ function get_feature_number_by_scen_id() {
 function delete_item_from_scenario_list(scen_id) {
     push_cmd("delete_scen_from_fea", JSON.stringify({
         'ScenarioID': scen_id,
-        'FeatureID': document.getElementById("feas_by_scen").value
+        'FeatureID' : $('#feas_by_scen :selected').map(function(i,j){return j.value}).get()
     }));
     processor(send_cmd());
     update_scenario_list_in_feature();
@@ -658,20 +646,17 @@ function delete_item_from_scenario_list(scen_id) {
 }
 
 function create_used_fealist() {
-    var ret_val,
-	    feature_list;
-	
 	push_cmd("get_features_by_scenario_id", JSON.stringify({
         'fea_scen.ScenarioID': document.getElementById("scenario_list").value
     }));
-	
-    ret_val      = processor(send_cmd(), ret_val);
-    feature_list = create_select_list('feas_by_scen', 'feas_by_scen', ret_val['get_features_by_scenario_id'], null, { "prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title" });
+
+	var ret_val      = processor(send_cmd(), ret_val);
+    var feature_list = create_select_list('feas_by_scen', 'feas_by_scen', ret_val['get_features_by_scenario_id'], null, { "prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title" });
 
 	document.getElementById("features_by_scenario").appendChild(feature_list);	
 }
 
-function clear_scenario() {
+function delete_scenario() {
     push_cmd("clear_scen", JSON.stringify({
         'ScenarioID': document.getElementById("scenario_list").value
     }));
@@ -686,7 +671,7 @@ function clear_scenario() {
 
 function save_scenarios_to_feature() {
     SAVE_SCENARIO_DATAS = {};
-    var scenarios = check_selected_scenarios_for_database_saving();
+    var scenarios = $("#Scenarios_in_Feature").find('li').map(function(i,j){return j.value;});
 
     save_scenarios_in_feature({
         'feature_id': ACTUAL_FEATURE,
@@ -705,23 +690,6 @@ function save_scenarios_in_feature(Scenario_datas) {
     processor(send_cmd());
 }
 
-function check_selected_scenarios_for_database_saving() {
-    var sentence_number = $("#Scenarios_in_Feature").children().length;
-    var li_gherkin_list = $("#Scenarios_in_Feature").children();
-    var scenario_in_feature = [];
-
-    for (var i = 0; i < sentence_number; i++) {
-        scenario_in_feature[i] = li_gherkin_list[i].value;
-    }
-
-    return scenario_in_feature;
-}
-
-function clear_feature_HTML() {
-    var li_list = $("#Scenarios_in_Feature").children();
-    li_list.remove();
-}
-
 function save_feature_file() {
     push_cmd("Save_Feature", JSON.stringify(  {
 			'FeatureName'   : get_feature_name( ACTUAL_FEATURE )  ,
@@ -736,7 +704,7 @@ function get_gherkin_text_by_feature() {
 }
 
 function delete_scenario_from_fea_dialog() {
-    var scenario_id = get_scen_id_by_btn_id(this.id, 1);
+    var scenario_id = $('#' + this.id).parent().val();
     var row_id = this.id;
 
     $("#Are_you_sure").dialog({
@@ -749,7 +717,8 @@ function delete_scenario_from_fea_dialog() {
                 text: 'Delete scenario',
                 click: function() {
                     $(this).dialog("close");
-                    delete_scen_from_fea(row_id, scenario_id);
+                    delete_scen_from_fea_by_position($( "li" ).index( $('#' + row_id).parent() ), scenario_id);
+                    $('#' + row_id).parent().remove();
                     save_scenarios_to_feature();
                 }
             },
@@ -763,43 +732,18 @@ function delete_scenario_from_fea_dialog() {
         }
     });
     var selecte_fea_name;
-    var scenario_name = get_scenario_name(scenario_id);
+    var scenario_name = $('#' + scenario_id).parent().find('span').html();
 
     selecte_fea_name = get_feature_name_by_id(ACTUAL_FEATURE);
     var delete_scenario_from_fea = " Are you sure you want to delete: " + scenario_name + "scenario from" + selecte_fea_name + "feature";
     document.getElementById("Are_you_sure").innerHTML = delete_scenario_from_fea;
 }
 
-function delete_scen_from_fea(row_id, act_scen_id) {
-    var li_id = get_li_id_from_row_id(row_id);
-
-    delete_selected_li_from_HTML(li_id);
-    delete_ids_from_scen_list_by_row_id(li_id);
-}
-
-function get_li_id_from_row_id(row_id) {
-    var li_id = row_id.replace("del_scen_from_fea_btn_", "");
-    return li_id;
-}
-
-function delete_selected_li_from_HTML(li_id) {
-    $("#" + li_id).remove();
-}
-
-function delete_ids_from_scen_list_by_row_id(row_id) {
-    if (SCENARIOS_IN_FEATURE.hasOwnProperty(row_id)) {
-        delete SCENARIOS_IN_FEATURE[row_id];
-    }
-}
-
-function get_scen_id_by_btn_id(btn_id, isDeleteBtn) {
-    var btn_idx = 0;
-    isDeleteBtn ? btn_idx = 1 : btn_idx = 0;
-
-    for (var idx in SCENARIOS_IN_FEATURE) {
-        if (SCENARIOS_IN_FEATURE[idx]['btn_list'][btn_idx].id == btn_id) {
-            return SCENARIOS_IN_FEATURE[idx]['scenario_id'];
-        }
-    }
-    return -1;
+function delete_scen_from_fea_by_position(row_id, act_scen_id) {
+    push_cmd("delete_scen_from_fea_by_position", JSON.stringify(  {
+		'ScenarioID' : act_scen_id,
+		'FeatureID'  : ACTUAL_FEATURE,
+		'Position'   : row_id,
+    } ) ) ;
+    processor( send_cmd() );
 }

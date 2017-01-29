@@ -636,6 +636,106 @@ sub ValidateUser {
     });
 }
 
+sub rename_scenario {
+    my $self = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+    my $param = shift;
+
+    return $self->my_update({
+        table  => 'Scenario',
+        update => {
+            Description => $param->{NewScenarioName}
+        },
+        where => {
+            ScenarioID => $param->{ScenarioID},
+        }
+    });
+}
+
+#OK
+sub delete_scen_from_fea {
+    my $self   = shift ;
+    my $result = undef ;
+    my $params = shift;
+    my @feature_ids = ('ARRAY' eq ref $params->{ 'FeatureID' } ? @{ $params->{ 'FeatureID' } } : $params->{ 'FeatureID' } );
+
+    if ( $self->check_input_data_for_delete_scenario_from_feature( @_ ) ) {
+        $result = $self->my_delete(
+                                    {
+                                      'from'   => 'FeatureScenario',
+                                      'select' => '',
+                                      'where'  => {
+                                                   "ScenarioID" => $params->{ 'ScenarioID' },
+                                                   "FeatureID"  => $_
+                                                 },
+                                      "relation" => "and",
+                                    }
+                                  ) for @feature_ids;
+
+        if ( !$result ) {
+            $self->add_error( 'DEL_SCEN_FROM_FEA' ) ;
+        } ## end if ( !$result )
+        return $result ;
+    } ## end if ( $self->check_input_data_for_delete_scenario_from_feature...)
+} ## end sub delete_scen_from_fea
+
+sub check_input_data_for_delete_scenario_from_feature {
+    my $self = shift ;
+
+    if (     $_[ 0 ]->{ 'ScenarioID' }
+         and $_[ 0 ]->{ 'FeatureID' } )
+    {
+        return 1 ;
+    } else {
+        return 0 ;
+    } ## end else [ if ( $_[ 0 ]->{ 'ScenarioID'...})]
+} ## end sub check_input_data_for_delete_scenario_from_feature
+
+sub delete_scen_from_fea_by_position {
+    my $self = shift;
+    my $params = shift || $self->add_error( 'PARAM_ERROR' ) and return;
+
+    $self->my_delete(
+        {
+          'from'   => 'FeatureScenario',
+          'where'  => {
+                       "ScenarioID" => $params->{ 'ScenarioID' },
+                       "FeatureID"  => $params->{ 'FeatureID' },
+                       "Position"   => $params->{ 'Position' },
+                     },
+        }
+    );
+}
+
+#OK
+sub get_scen_list_by_fea {
+    my $self   = shift ;
+    my $result = undef ;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+
+    $result = $self->my_select({
+           from   => 'Feature AS fea',
+           select => [
+                         'fea.FeatureID         AS FeatureID',
+                         'fea.Title             AS FeatureName',
+                         'fea_scen.ScenarioID   AS ScenarioID',
+                         'scen.Description      AS ScenarioName'
+                       ],
+           join   => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID       = fea_scen.FeatureID )
+                      JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
+           where  => {
+                        "fea.FeatureID" => $_[ 0 ]->{ 'FeatureID' }
+                      },
+           sort   => 'fea_scen.Position'
+    });
+
+    if ( !$result ) {
+        $self->add_error( 'SCENLIST_BY_FEA' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+} ## end sub get_scen_list_by_fea
+
 ###########################################################################################
 ###########################################################################################
 ###########################################################################################
@@ -856,29 +956,6 @@ sub get_scen_id_by_scen_in_fea_id {
                     ) ;
 } ## end sub get_scen_id_by_scen_in_fea_id
 
-#OK
-sub get_scen_list_by_fea {
-    my $self   = shift ;
-    my $result = undef ;
-
-    $result = $self->my_select(
-                                {
-                                  'from'   => 'FeatureScenario',
-                                  'select' => 'ScenarioID',
-                                  'where'  => {
-                                               "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
-                                             },
-                                  "sort" => "Position",
-                                }
-                              ) ;
-
-    if ( !$result ) {
-        $self->add_error( 'SCENLIST_BY_FEA' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
-} ## end sub get_scen_list_by_fea
-
 sub get_max_position {
     my $self = shift ;
     $self->my_select(
@@ -971,26 +1048,6 @@ sub get_scen_name_by_scen_id {
       return $scenario_name ;
 } ## end sub get_scen_name_by_scen_id
 
-sub get_fea_and_scen_names {
-    my $self = shift ;
-    $self->my_select(
-        {
-           'from'   => 'Feature AS fea',
-           'select' => [
-                         'fea.FeatureID        AS FeatureID',
-                         'fea.Title             AS FeatureName',
-                         'fea_scen.ScenarioID   AS ScenarioID',
-                         'scen.Description      AS ScenarioName'
-                       ],
-           'join' => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID       = fea_scen.FeatureID )
-                            JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
-           'where' => {
-                        "fea.FeatureID" => $_[ 0 ]->{ 'fea.FeatureID' }
-                      }
-        }
-    ) ;
-} ## end sub get_fea_and_scen_names
-
 sub check_input_data_for_get_gherkintext_by_fea {
     my $self = shift ;
     if ( $_[ 0 ]->{ 'FeatureID' } ) {
@@ -1028,43 +1085,6 @@ sub set_scenario_header_in_feature {
     #return $scen_id;
     return $scenario_header_in_feature_1 ;
 } ## end sub set_scenario_header_in_feature
-
-#OK
-sub delete_scen_from_fea {
-    my $self   = shift ;
-    my $result = undef ;
-
-    if ( $self->check_input_data_for_delete_scenario_from_feature( @_ ) ) {
-        $result = $self->my_delete(
-                                    {
-                                      'from'   => 'FeatureScenario',
-                                      'select' => '',
-                                      'where'  => {
-                                                   "ScenarioID" => $_[ 0 ]->{ 'ScenarioID' },
-                                                   "FeatureID"  => $_[ 0 ]->{ 'FeatureID' }
-                                                 },
-                                      "relation" => "and",
-                                    }
-                                  ) ;
-
-        if ( !$result ) {
-            $self->add_error( 'DEL_SCEN_FROM_FEA' ) ;
-        } ## end if ( !$result )
-        return $result ;
-    } ## end if ( $self->check_input_data_for_delete_scenario_from_feature...)
-} ## end sub delete_scen_from_fea
-
-sub check_input_data_for_delete_scenario_from_feature {
-    my $self = shift ;
-
-    if (     $_[ 0 ]->{ 'ScenarioID' }
-         and $_[ 0 ]->{ 'FeatureID' } )
-    {
-        return 1 ;
-    } else {
-        return 0 ;
-    } ## end else [ if ( $_[ 0 ]->{ 'ScenarioID'...})]
-} ## end sub check_input_data_for_delete_scenario_from_feature
 
 #SCENARIO-WITH-SENTENCE
 
