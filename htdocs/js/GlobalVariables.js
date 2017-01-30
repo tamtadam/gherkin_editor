@@ -8,3 +8,5 @@ var FEATURE_SELECT_LIST  = [];
 var FEATURE_SCENARIO_IDS = [];
 
 var ACTUAL_FEATURE  = -1;
+
+var SCENARIO_PREFIX = "scenario_";

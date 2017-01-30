@@ -195,7 +195,12 @@ pre {
     border:1px solid black; 
 }
 
+.empty{
+    color: grey;
+}
 
-
+.not_empty{
+    color: black;
+}
 
 
