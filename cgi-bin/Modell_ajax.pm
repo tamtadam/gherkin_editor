@@ -3722,14 +3722,14 @@ sub Logout {
 sub LoginForm {
    my $self = shift;
    my $data = shift;
-   my $login = $self->{'DB_Session'}->check_password($data);
-   
-   if ( defined $login ) {
-       $login = $self->{'DB_Session'}->save_session( { 'login' => $login, } );
+   my @login = $self->{'DB_Session'}->check_password($data);
+      $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@login ) ;
+   if ( @login ) {
+       $login = $self->{'DB_Session'}->save_session( { 'login' => $login[ 0 ], } );
+       return $login[ 0 ];
+   } else {
+       return;
    }
-
-   $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $login ) ;
-   return $login;
 }
 
 
