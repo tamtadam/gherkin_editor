@@ -19,16 +19,53 @@
 <script type="text/javascript" src="js/UseFullFunctions.js"></script>
 <script type="text/javascript" src="js/scenario_editor.js"></script>
 
+<script>
+    $(document).ready(function() {
+       init_page();
+    });
+
+
+</script>
+
+
 </head>
 <body>
 
-    <div id="status" class="panel-container-vertical">
-		<div id="error" class="panel-top"></div>
+
+
+<div id="header">
+
+	<div id="menu">
+	<ul>
+		<li><a href="reg.html">Registration</a></li>
+	</ul>
+	<div id="loggedin_user"></div>
+	</div>
+
+
+    <div id="loginContent" >
+      <div id="loginResult" style="display:none;">
+      </div>
+      <div id="loginForm" name="loginForm" method="post" action="">
+        
+		 <label for="username">Felhasznalonev</label>
+            <input type="text" id="username" name="username" class="text" size="20" />
+          
+            <label for="password">Jelszo</label>
+            <input type="password" id="password" name="password" class="text" size="20" />
+            <br>
+			<img id="login"></img>
+			<img id="logout"></img>
+        
+      </div>
+
+    </div>
+
+    <div id="status" style="display: none;">
+		<div id="error"></div>
 		
-		<div class="splitter-horizontal">
-		</div>
 		
-		<div id ="locked_status" class="panel-bottom">
+		<div id ="locked_status" >
 
 			<h2>Locked status</h2>
 
@@ -44,11 +81,10 @@
 			</div>
 		</div>	
 	</div>
+		
+    <div id="gherkin_editor" >
 	
-	
-
-	<div class="panel-container">
-		<div id='Feature_list' class="panel-left">
+		<div id='Feature_list'>
 				<h3>Feature list</h3>
 				<h4 id='feature_list_container'>
 					<select id="feature_list" >
@@ -60,10 +96,7 @@
 				<img id="delete_item_from_feature_list_btn">
 		</div>
 		
-		<div class="splitter">
-		</div>
-
-		<div id='Scenario_list' class="panel-right" >
+		<div id='Scenario_list' >
 				<h3>Scenario list</h3>
 				<h4 id='scenario_list_container'>
 					<select id="scenario_list" >
@@ -74,64 +107,41 @@
 				<img id="add_item_to_scenario_list_btn">
 				<img id="delete_item_from_scenario_list_btn">
 		</div>		
-			
-	</div>
-	
-	<div class="panel-container">
-	
-		<div id="Scenarios_in_Feature-cont" class="panel-left"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
+				
+		<div id="Scenarios_in_Feature-cont"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
 				<h3 id='FeatureScenario_h3'></h3>
 
 				<ul id="Scenarios_in_Feature" class="connectedSortable">
 				</ul>
 				<img id="get_featext">
-                <img id="save_scenarios_to_feature">
+				<img id="are_you_sure_clear_feature">
+				<img id="save_scenarios_to_feature">
 		</div>	
-		
-		<div class="splitter">
-		</div>
+	
 
-		<div id="Sentence_editor" class="panel-right">
+		<div id="Sentence_editor" >
+		
 				<h3>Sentence editor</h3>
 		</div>	
-
-	</div>
 			
-    <div id="Delete_feature_from_feature_list" Title ="Are you sure you want to delete the selected feature?">
-    </div>
+		<div id="Delete_feature_from_feature_list" Title ="Are you sure you want to delete the selected feature?">
+		</div>
 
-	<div id="Delete_scenario_from_features" Title ="From which feature want you delete scenario?">
-	    <h4 id='features_by_scenario'></h4>
+		<div id="Delete_scenario_from_features" Title ="From which feature want you delete scenario?">
+			<h4 id='features_by_scenario'></h4>
+		</div>
+		
+		<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
+		</div>
+
+		<div id="Are_you_sure">
+		</div>
+
     </div>
 	
-	<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
-    </div>
-
-    <div id="Are_you_sure">
-    </div>
-
-    <div id="Alert_dialog">
-    </div>
-
-    <div id="RenameScenarioDialog">
-        <input type="text" id="new_scenario_name"></input>
-    </div>
+</div>	
+	
 
 </body>
-<script>
-    $(document).ready(function() {
-        init_page();
-		
-		$(".panel-left").resizable({
-			handleSelector: ".splitter",
-			resizeHeight: false
-		});	
 
-		$(".panel-top").resizable({
-            handleSelector: ".splitter-horizontal",
-            resizeWidth: false
-    });
-  });
-	
-</script>
 </html>

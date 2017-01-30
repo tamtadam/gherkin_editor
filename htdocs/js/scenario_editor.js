@@ -1,4 +1,4 @@
-var SCENARIOS_IN_FEATURE = new Object();
+var SCENARIOS_IN_FEATURE = {};
 function init_page_DB() {
     var processed_data = new Object();
 
@@ -221,16 +221,15 @@ function locked_status(table) {
 function init_page() {
 	var feature_id,
 	    feature_name,
-	    get_fea_text;
-		
-	//get_fea_text = create_button_as_img("get_featext", get_featext, "", "img/get_fea_text.png");
-	//document.getElementById("Feature-input").appendChild(get_fea_text);	
+		login;
+	
+	
+	login = create_button_as_img('login', login_, "login", "img/update.png", "");
+    document.getElementById('loginForm').appendChild(login);
 	
     init_page_DB();
     fill_feature_list();
 	fill_scenario_list();
-
-    $("#locked_status").show();
 
     sortable_li();
 
@@ -439,6 +438,7 @@ function open_dialog_for_scenarios_in_feauture() {
     document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + get_feature_name_by_id(ACTUAL_FEATURE);
 }
 
+
 function close_feature () {
     if (FEATURE_LOCKED_BY_ME == true) {
         set_Feature_unlocked(ACTUAL_FEATURE);
@@ -446,6 +446,8 @@ function close_feature () {
     $("#Scenarios_in_Feature").children().remove();
     document.getElementById("Scenarios_in_Feature_title").innerHTML = 'No feature selected';
 }
+
+//TODO: refactor
 
 //TODO: refactor
 function update_scenario_list_in_feature() {
@@ -473,6 +475,8 @@ function update_scenario_list_in_feature() {
                 "id": li_id,
                 'value': scenario_list_in_fea[i]['ScenarioID']
             }));
+
+            $("#" + li_id).append( create_span({ text :  scenario_list_in_fea[i]['ScenarioName'] }) );
 
             $("#" + li_id).append( create_span({ text :  scenario_list_in_fea[i]['ScenarioName'] }) );
 
@@ -690,6 +694,23 @@ function save_scenarios_in_feature(Scenario_datas) {
     processor(send_cmd());
 }
 
+function check_selected_scenarios_for_database_saving() {
+    var sentence_number = $("#Scenarios_in_Feature").children().length;
+    var li_gherkin_list = $("#Scenarios_in_Feature").children();
+    var scenario_in_feature = [];
+
+    for (var i = 0; i < sentence_number; i++) {
+        scenario_in_feature[i] = li_gherkin_list[i].value;
+    }
+
+    return scenario_in_feature;
+}
+
+function clear_feature_HTML() {
+    var li_list = $("#Scenarios_in_Feature").children();
+    li_list.remove();
+}
+
 function save_feature_file() {
     push_cmd("Save_Feature", JSON.stringify(  {
 			'FeatureName'   : get_feature_name( ACTUAL_FEATURE )  ,
@@ -747,3 +768,75 @@ function delete_scen_from_fea_by_position(row_id, act_scen_id) {
     } ) ) ;
     processor( send_cmd() );
 }
+
+function login_() {
+    var username,
+	    password,
+		login;
+
+    username= document.getElementById("username").value;
+	password= document.getElementById("password").value;
+
+	if (username && password) { 
+		var processed_data = {};
+
+		push_cmd("LoginForm", JSON.stringify({
+			'acc': username, 
+			'pwd': password, 
+		}));
+	
+     	processed_data = processor(send_cmd());
+        login = processed_data['LoginForm'];
+	    session = login.session;
+		
+		if ( login !== undefined ) {
+			login_html(login.username);
+		} else {
+			alert("Rossz adatokat adtal meg!");
+		};			
+		
+	} 
+	else {
+	  $('div#loginResult').text("enter username and password");
+	  $('div#loginResult').addClass("error");
+	} 
+	$('div#loginResult').fadeIn();
+	return false;
+	
+}
+
+function login_html(username) {
+	var header,
+	    text,
+		user,
+		logout;
+		
+		text = "logged in as " + username;
+	
+	$("#loginContent").hide();		
+	user = document.getElementById("loggedin_user");
+	$("#loggedin_user").show();
+	$("#loggedin_user").text(text);
+    logout = create_button_as_img("logout", logout_, "logout", "img/clear.png", document.getElementById("loggedin_user"));
+    user.appendChild(logout);
+	init_page();
+}
+
+function logout_(node) {
+	var logout,
+	    myNode;
+    var processed_data = {};
+	
+	push_cmd("Logout", JSON.stringify({
+		'session_id': session, 
+	}));
+	processed_data = processor(send_cmd());
+	logout = processed_data['Logout'];		    
+    
+	$("#loggedin_user").hide();
+
+	$("#loginContent").show();
+	session = null;
+	init_page();
+}
+
