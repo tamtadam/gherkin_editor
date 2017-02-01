@@ -33,6 +33,7 @@ function fill_feature_list()
     create_button_as_img('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_feature_list_btn', add_new_feature_to_feature_list, "Add item", "img/add.png");
 
+    document.getElementById('feature_list').ondblclick = select_feature;
 }
 
 function fill_scenario_list() {
@@ -46,6 +47,8 @@ function fill_scenario_list() {
 
     create_button_as_img('delete_item_from_scenario_list_btn', Are_you_sure_you_want_to_delete_scenario, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_scenario_list_btn', add_new_scenario_to_scenario_list, "Add item", "img/add.png");	
+
+    document.getElementById('scenario_list').ondblclick = add_scenario_to_feature;
 }
 
 function add_new_scenario_to_scenario_list() {
@@ -222,24 +225,21 @@ function init_page() {
 	var feature_id,
 	    feature_name,
 		login;
-	
-	
-	login = create_button_as_img('login', login_, "login", "img/update.png", "");
-    document.getElementById('loginForm').appendChild(login);
-	
-    init_page_DB();
-    fill_feature_list();
-	fill_scenario_list();
 
-    sortable_li();
-
-    document.getElementById('feature_list').ondblclick = select_feature;
-    document.getElementById('scenario_list').ondblclick = add_scenario_to_feature;
+	if ( session ) {
+    	login_html( GetCookie('username') );
+    	init_page_DB();
+	    fill_feature_list();
+		fill_scenario_list();
+	    sortable_li();
 	
-    setInterval(function() {
-        get_locked_status();
-    }, 15000);
-
+	    setInterval(function() {
+	        get_locked_status();
+	    }, 45000);
+    } else {
+    	login = create_button_as_img('login', login_, "login", "img/update.png", "");
+        document.getElementById('loginForm').appendChild(login);
+    }
 }
 
 function select_feature () {
@@ -777,12 +777,12 @@ function login_() {
     username= document.getElementById("username").value;
 	password= document.getElementById("password").value;
 
-	if (username && password) { 
+	if (username && password) {
 		var processed_data = {};
 
 		push_cmd("LoginForm", JSON.stringify({
-			'acc': username, 
-			'pwd': password, 
+			'acc': username,
+			'pwd': MD5(password),
 		}));
 	
      	processed_data = processor(send_cmd());
@@ -790,16 +790,32 @@ function login_() {
 	    session = login.session;
 		
 		if ( login !== undefined ) {
-			login_html(login.username);
+			AddCookie("session", login.session);
+			AddCookie("username", login.username);
+			init_page();
 		} else {
-			alert("Rossz adatokat adtal meg!");
+			$('#Alert_dialog').dialog({
+		        width: 500,
+		        title: 'Wrong user params',
+		        height: 150,
+		        position: [600, 600],
+		        buttons:
+		        {
+		            "Close": {
+		            	text: 'Close',
+		                click: function() {
+		                    $(this).dialog("close");
+		                }
+		            }
+		        }
+		    });
 		};			
 		
-	} 
+	}
 	else {
 	  $('div#loginResult').text("enter username and password");
 	  $('div#loginResult').addClass("error");
-	} 
+	}
 	$('div#loginResult').fadeIn();
 	return false;
 	
@@ -819,7 +835,6 @@ function login_html(username) {
 	$("#loggedin_user").text(text);
     logout = create_button_as_img("logout", logout_, "logout", "img/clear.png", document.getElementById("loggedin_user"));
     user.appendChild(logout);
-	init_page();
 }
 
 function logout_(node) {
@@ -828,15 +843,17 @@ function logout_(node) {
     var processed_data = {};
 	
 	push_cmd("Logout", JSON.stringify({
-		'session_id': session, 
+		'session_id': session,
 	}));
 	processed_data = processor(send_cmd());
-	logout = processed_data['Logout'];		    
-    
+	logout = processed_data['Logout'];		
+
+	DeleteCookie( 'session' );
+	
 	$("#loggedin_user").hide();
 
 	$("#loginContent").show();
+	DeleteCookie( 'session' );
 	session = null;
-	init_page();
 }
 

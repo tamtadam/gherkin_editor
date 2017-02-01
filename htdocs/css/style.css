@@ -93,7 +93,7 @@ p, ul, ol {
   flex-direction: row;
   border: 1px solid silver;
   overflow: hidden;
-  
+
   /* avoid browser level touch actions */
   xtouch-action: none;
 }
@@ -112,10 +112,10 @@ p, ul, ol {
 
 .splitter {
   flex: 0 0 auto;
-  width: 18px;  
+  width: 18px;
   background: url(https://raw.githubusercontent.com/RickStrahl/jquery-resizable/master/assets/vsizegrip.png) center center no-repeat #535353;
   min-height: 200px;
-  cursor: col-resize;  
+  cursor: col-resize;
 }
 
 .panel-right {
@@ -188,11 +188,11 @@ pre {
 }
 
 #error {
-    border:1px solid black; 
+    border:1px solid black;
 }
 
 #locked_status{
-    border:1px solid black; 
+    border:1px solid black;
 }
 
 .empty{
