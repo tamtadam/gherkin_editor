@@ -3709,28 +3709,4 @@ sub get_screenstatename_from_path {
     return $result ;
 } ## end sub get_screenstatename_from_path
 
-sub Logout {
-   my $self = shift;
-   $self->start_time( @{ [ caller(0) ] }[3], \@_ );
-
-   my $data = shift;
-   $self->{'DB_Session'}->delete_session( $data->{'session_id'} );
-
-   return {};
-}
-
-sub LoginForm {
-   my $self = shift;
-   my $data = shift;
-   my @login = $self->{'DB_Session'}->check_password($data);
-      $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@login ) ;
-   if ( @login ) {
-       $login = $self->{'DB_Session'}->save_session( { 'login' => $login[ 0 ], } );
-       return $login[ 0 ];
-   } else {
-       return;
-   }
-}
-
-
 1 ;
