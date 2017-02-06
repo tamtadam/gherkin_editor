@@ -22,14 +22,16 @@ function fill_feature_list()
 
     $(feature_list).find('option').map(function(i, j){ $( j ).addClass('empty') } );
 
-    $(feature_list).find('option').get().filter(function(i,j){
-    	return $.grep(FEATURE_SCENARIO_IDS, function(k,l){
-    		return i.value == k.FeatureID;
-    	}).length > 0;
-    }).map(function(i, j){
-    	$( i ).addClass('not_empty') ;
-    });
-
+	if ( FEATURE_SCENARIO_IDS !== null ) {
+		$(feature_list).find('option').get().filter(function(i,j){
+			return $.grep(FEATURE_SCENARIO_IDS, function(k,l){
+				return i.value == k.FeatureID;
+			}).length > 0;
+		}).map(function(i, j){
+			$( i ).addClass('not_empty') ;
+		});
+	}
+	
     create_button_as_img('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature, "Add sentence", "img/clear.png");
     create_button_as_img('add_item_to_feature_list_btn', add_new_feature_to_feature_list, "Add item", "img/add.png");
 
@@ -225,7 +227,9 @@ function init_page() {
 	var feature_id,
 	    feature_name,
 		login;
-
+    
+	load_jquery();
+	
 	if ( session ) {
     	login_html( GetCookie('username') );
     	init_page_DB();
@@ -829,12 +833,23 @@ function login_html(username) {
 		
 		text = "logged in as " + username;
 	
-	$("#loginContent").hide();		
+	hide_login();
+	
 	user = document.getElementById("loggedin_user");
 	$("#loggedin_user").show();
 	$("#loggedin_user").text(text);
     logout = create_button_as_img("logout", logout_, "logout", "img/clear.png", document.getElementById("loggedin_user"));
     user.appendChild(logout);
+}
+
+function hide_login () {
+	$(".wrapper").css("top", "0px");
+    $(".right.pane").css("top", "0px");	
+}
+
+function show_login () {
+	$(".wrapper").css("top", "81px");
+    $(".right.pane").css("top", "81px");	
 }
 
 function logout_(node) {
@@ -852,8 +867,22 @@ function logout_(node) {
 	
 	$("#loggedin_user").hide();
 
-	$("#loginContent").show();
+	show_login();
+	
 	DeleteCookie( 'session' );
 	session = null;
 }
 
+function load_jquery () {
+		$(function () {
+			$(".left.pane").resizable({
+				handles: "e, w"
+			});
+			$(".right.pane").resizable({
+				handles: "e, w"
+			});
+			$(".center.pane .inner .bottom").resizable({
+				handles: "n, s"
+			});
+		});			
+}

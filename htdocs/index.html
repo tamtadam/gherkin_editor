@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title></title>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="css/resizable.css">
 
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -23,127 +23,130 @@
 
 <script>
     $(document).ready(function() {
-       init_page();
+		init_page();	 
     });
-
-
 </script>
 
 
 </head>
 <body>
-
-
-
-<div id="header">
-
-	<div id="menu">
-	<ul>
-		<li><a href="reg.html">Registration</a></li>
-	</ul>
-	<div id="loggedin_user"></div>
+	 <div id="menu"class="header">
+			<ul>
+				<li><a href="reg.html">Registration</a></li>
+				<li>
+					<div id="loginContent" >
+							<div id="loginResult" >
+							</div>
+							<div id="loginForm" name="loginForm" method="post" action="" >
+							
+							   <label for="username">Username</label>
+								<input type="text" id="username" name="username" class="text" size="20" />
+							
+								<label for="password">Password</label>
+								<input type="password" id="password" name="password" class="text" size="20" />
+								<br>
+								<img id="login"></img>
+								<img id="logout"></img>
+							
+							</div>
+					</div>				
+				</li>
+			</ul>	
 	</div>
-
-
-    <div id="loginContent" >
-      <div id="loginResult" style="display:none;">
-      </div>
-      <div id="loginForm" name="loginForm" method="post" action="">
-
-		 <label for="username">Felhasznalonev</label>
-            <input type="text" id="username" name="username" class="text" size="20" />
-
-            <label for="password">Jelszo</label>
-            <input type="password" id="password" name="password" class="text" size="20" />
-            <br>
-			<img id="login"></img>
-			<img id="logout"></img>
-
-      </div>
-
-    </div>
-
-    <div id="status" style="display: none;">
-		<div id="error"></div>
-		
-		
-		<div id ="locked_status" >
-
-			<h2>Locked status</h2>
-
-			<br>
-			<h6>Scenario status</h6>
-			<div id = "locked_Scenario">
-			</div>
-
-			<br>
-			<h6>Feature status</h6>
-			<div id = "locked_Feature">
-
-			</div>
-		</div>	
-	</div>
-		
-    <div id="gherkin_editor" >
 	
-		<div id='Feature_list'>
-				<h3>Feature list</h3>
-				<h4 id='feature_list_container'>
-					<select id="feature_list" >
-					</select>
-				</h4>
-				<input type="text" id="add_new_feature_input"></input>
-				<br>
-				<img id="add_item_to_feature_list_btn">
-				<img id="delete_item_from_feature_list_btn">
-		</div>
-		
-		<div id='Scenario_list' >
-				<h3>Scenario list</h3>
-				<h4 id='scenario_list_container'>
-					<select id="scenario_list" >
-					</select>
-				</h4>
-				<input type="text" id="add_new_scenario_input"></input>
-				<br>
-				<img id="add_item_to_scenario_list_btn">
-				<img id="delete_item_from_scenario_list_btn">
-		</div>		
+	<div class="wrapper">
+		<div class="inner-wrapper">
+			<div class="left pane">
+				<div id='Feature_list' >
+						<h3>Feature list</h3>
+						<h4 id='feature_list_container'>
+							<select id="feature_list" >
+							</select>
+						</h4>
+						<input type="text" id="add_new_feature_input"></input>
+						<br>
+						<img id="add_item_to_feature_list_btn">
+						<img id="delete_item_from_feature_list_btn">
+				</div>
 				
-		<div id="Scenarios_in_Feature-cont"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
-				<h3 id='FeatureScenario_h3'></h3>
+				<div id='Scenario_list' >
+						<h3>Scenario list</h3>
+						<h4 id='scenario_list_container'>
+							<select id="scenario_list" >
+							</select>
+						</h4>
+						<input type="text" id="add_new_scenario_input"></input>
+						<br>
+						<img id="add_item_to_scenario_list_btn">
+						<img id="delete_item_from_scenario_list_btn">
+				</div>		
+						
+				<div id="Scenarios_in_Feature-cont"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
+						<h3 id='FeatureScenario_h3'></h3>
 
-				<ul id="Scenarios_in_Feature" class="connectedSortable">
-				</ul>
-				<img id="get_featext">
-				<img id="are_you_sure_clear_feature">
-				<img id="save_scenarios_to_feature">
-		</div>	
-	
+						<ul id="Scenarios_in_Feature" class="connectedSortable">
+						</ul>
+						<img id="get_featext">
+						<img id="are_you_sure_clear_feature">
+						<img id="save_scenarios_to_feature">
+				</div>				
 
-		<div id="Sentence_editor" >
-		
-				<h3>Sentence editor</h3>
-		</div>	
+
 			
-		<div id="Delete_feature_from_feature_list" Title ="Are you sure you want to delete the selected feature?">
-		</div>
+			
+			
+			</div>
+			<div class="center pane">
+				<div class="inner">
+					<div class="top">
+						<div id="Sentence_editor" >
+								<h3>Sentence editor</h3>
+						</div>	
 
-		<div id="Delete_scenario_from_features" Title ="From which feature want you delete scenario?">
-			<h4 id='features_by_scenario'></h4>
-		</div>
-		
-		<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
-		</div>
+						<div id="Delete_feature_from_feature_list" Title ="Are you sure you want to delete the selected feature?">
+						</div>
 
-		<div id="Are_you_sure">
+						<div id="Delete_scenario_from_features" Title ="From which feature want you delete scenario?">
+							<h4 id='features_by_scenario'></h4>
+						</div>
+						
+						<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
+						</div>
+
+						<div id="Are_you_sure"></div>					
+					</div>
+				</div>
+			</div>
+			<div class="right pane">
+			
+				<div id="loggedin_user"></div>
+
+				<div id="status" >
+					<div id="error"></div>
+					
+					
+					<div id ="locked_status" >
+
+						<h2>Locked status</h2>
+
+						<br>
+						<h6>Scenario status</h6>
+						<div id = "locked_Scenario">
+						</div>
+
+						<br>
+						<h6>Feature status</h6>
+						<div id = "locked_Feature">
+
+						</div>
+					</div>	
+				</div>		
+
+			
+			
+			</div>
 		</div>
-
-    </div>
-	
-</div>	
-	
-
+	</div>
 </body>
 
 </html>
