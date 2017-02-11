@@ -1,4 +1,3 @@
-var SCENARIOS_IN_FEATURE = {};
 function init_page_DB() {
     var processed_data = new Object();
 
@@ -79,24 +78,23 @@ function add_new_feature_to_feature_list() {
 }
 
 function Are_you_sure_you_want_to_delete_feature() {
-    var feature_name = get_feature_name_by_id( document.getElementById("feature_list").value );
+    var feature_data = $('#feature_list option:checked').data('data');
 
     $("#Delete_feature_from_feature_list").dialog({
         width: 800,
         height: 200,
         position: [600, 600],
-        title: "Are you sure do you want" + "\n" + "to delete: " + feature_name + " feature?",
+        title: "Are you sure do you want" + "\n" + "to delete: " + feature_data.Title + " feature?",
         buttons:
         {
             "Delete scenarios": {
                 text: 'Delete feature',
                 click: function() {
                     $(this).dialog("close");
-                    var feature_id = document.getElementById("feature_list").value;
-                    if ( ACTUAL_FEATURE  == feature_id ) {
+                    if ( ACTUAL_FEATURE  == feature_data.FeatureID ) {
                     	close_feature();
                     }
-                    delete_item_from_feature_list( feature_id );
+                    delete_item_from_feature_list( feature_data.FeatureID );
                 }
 
             },
@@ -151,14 +149,6 @@ function update_feature_and_scenario_list() {
 
     fill_scenario_list();	
 	
-}
-
-function get_feature_name_by_id(selected_fea_id) {
-    for (var item in FEATURE_SELECT_LIST) {
-        if (FEATURE_SELECT_LIST[item]['FeatureID'] == selected_fea_id) {
-        	return FEATURE_SELECT_LIST[item]['Title'];
-        }
-    }
 }
 
 function get_featext() {
@@ -227,10 +217,13 @@ function init_page() {
 	var feature_id,
 	    feature_name,
 		login;
-    
-	load_jquery();
+
+	init_resizable();
 	
 	if ( session ) {
+	    $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
+	    	$('#' + n).show();
+	    });
     	login_html( GetCookie('username') );
     	init_page_DB();
 	    fill_feature_list();
@@ -243,6 +236,9 @@ function init_page() {
     } else {
     	login = create_button_as_img('login', login_, "login", "img/update.png", "");
         document.getElementById('loginForm').appendChild(login);
+        $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
+        	$('#' + n).hide();
+        });
     }
 }
 
@@ -439,7 +435,7 @@ function open_dialog_for_scenarios_in_feauture() {
 	    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
 	}
 	create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
-    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + get_feature_name_by_id(ACTUAL_FEATURE);
+    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + $('#feature_list option:checked').data('data').Title;
 }
 
 
@@ -472,6 +468,7 @@ function update_scenario_list_in_feature() {
 
     } else {
         for (var i = 0; i < scenario_list_in_fea.length; i++) {
+        	scenario_list_in_fea[i].Position = i;
             li_id               = "scenario_in_feature" + i;
             scenario_in_feature = "scenario_in_feature" + i;
 
@@ -479,8 +476,6 @@ function update_scenario_list_in_feature() {
                 "id": li_id,
                 'value': scenario_list_in_fea[i]['ScenarioID']
             }));
-
-            $("#" + li_id).append( create_span({ text :  scenario_list_in_fea[i]['ScenarioName'] }) );
 
             $("#" + li_id).append( create_span({ text :  scenario_list_in_fea[i]['ScenarioName'] }) );
 
@@ -492,14 +487,9 @@ function update_scenario_list_in_feature() {
                 $("#" + li_id).append(delete_scen_from_fea_btn1);
                 $("#" + li_id).append(edit_scen_from_fea_btn1);
                 $("#" + li_id).append(modify_scen);
+                $("#" + li_id).data('data', scenario_list_in_fea[i]);
             }
 
-            SCENARIOS_IN_FEATURE[li_id] = {
-                'btn_list': [edit_scen_from_fea_btn1, delete_scen_from_fea_btn1],
-                'scenario_id': scenario_list_in_fea[i]['ScenarioID'],
-                "scenario_in_fea": scenario_in_feature,
-                "li_id": li_id,
-            };
         }
         selected_fea_id_prev = document.getElementById("feature_list").value;
     }
@@ -510,9 +500,7 @@ function edit_scenario(DIALOG_WITHOUT_FEATURE) {
 }
 
 function rename_scenario_HTML() {
-    var old_scenario_id = $('#' + this.id).parent().val();
-    var scen_id = this.id;
-    $('#new_scenario_name').val( $('#' + old_scenario_id ).parent().find('span').html() );
+    $('#new_scenario_name').val( $('#' + this.id ).parent().find('span').html() );
 
     $('#RenameScenarioDialog').dialog({
         width: 500,
@@ -524,8 +512,8 @@ function rename_scenario_HTML() {
             "Confirm": {
             	text: 'Confirm',
                 click: function() {
-                    rename_scenario( $('#new_scenario_name').val(), old_scenario_id );
-                    $('#'+scen_id).parent().find('span').html( $('#new_scenario_name').val() );
+                    rename_scenario( $('#new_scenario_name').val(), this.id );
+                    $('#'+this.id ).parent().find('span').html( $('#new_scenario_name').val() );
                     $(this).dialog("close");
                 }
             },
@@ -678,7 +666,6 @@ function delete_scenario() {
 }
 
 function save_scenarios_to_feature() {
-    SAVE_SCENARIO_DATAS = {};
     var scenarios = $("#Scenarios_in_Feature").find('li').map(function(i,j){return j.value;});
 
     save_scenarios_in_feature({
@@ -729,7 +716,7 @@ function get_gherkin_text_by_feature() {
 }
 
 function delete_scenario_from_fea_dialog() {
-    var scenario_id = $('#' + this.id).parent().val();
+    var scenario_data = $('#' + this.id).parent().data('data');
     var row_id = this.id;
 
     $("#Are_you_sure").dialog({
@@ -742,7 +729,7 @@ function delete_scenario_from_fea_dialog() {
                 text: 'Delete scenario',
                 click: function() {
                     $(this).dialog("close");
-                    delete_scen_from_fea_by_position($( "li" ).index( $('#' + row_id).parent() ), scenario_id);
+                    delete_scen_from_fea_by_position(scenario_data.Position, scenario_data.ScenarioID);
                     $('#' + row_id).parent().remove();
                     save_scenarios_to_feature();
                 }
@@ -756,11 +743,9 @@ function delete_scenario_from_fea_dialog() {
             }
         }
     });
-    var selecte_fea_name;
-    var scenario_name = $('#' + scenario_id).parent().find('span').html();
-
-    selecte_fea_name = get_feature_name_by_id(ACTUAL_FEATURE);
-    var delete_scenario_from_fea = " Are you sure you want to delete: " + scenario_name + "scenario from" + selecte_fea_name + "feature";
+    var scenario_name = scenario_data.ScenarioName;
+    var selecte_fea_name = scenario_data.FeatureName;
+    var delete_scenario_from_fea = " Are you sure you want to delete: " + scenario_data.ScenarioName + "scenario from" + scenario_data.FeatureName + "feature";
     document.getElementById("Are_you_sure").innerHTML = delete_scenario_from_fea;
 }
 
@@ -845,11 +830,19 @@ function login_html(username) {
 function hide_login () {
 	$(".wrapper").css("top", "0px");
     $(".right.pane").css("top", "0px");	
+
+    $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
+    	$('#' + n).show();
+    });
 }
 
 function show_login () {
 	$(".wrapper").css("top", "81px");
     $(".right.pane").css("top", "81px");	
+
+    $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
+    	$('#' + n).hide();
+    });
 }
 
 function logout_(node) {
@@ -873,7 +866,7 @@ function logout_(node) {
 	session = null;
 }
 
-function load_jquery () {
+function init_resizable () {
 		$(function () {
 			$(".left.pane").resizable({
 				handles: "e, w"
