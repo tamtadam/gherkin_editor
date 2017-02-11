@@ -8,7 +8,7 @@ html, body {
     right: 0;
     height: 80px;
     background-color: #ccc;
-    
+
 }
 .wrapper {
     position:absolute;
@@ -37,7 +37,7 @@ html, body {
 .center.pane .inner .top,
 .center.pane .inner .bottom{
     display: table-row;
-    
+
 }
 
 .right.pane {
