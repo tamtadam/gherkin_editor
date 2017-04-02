@@ -7,7 +7,7 @@ use lib $FindBin::RealBin;
 use lib $FindBin::RealBin . "../../../common/cgi-bin/" ;
 use lib $FindBin::RealBin . "../../cgi-bin/" ;
 
-use Test::More tests => 6;
+use Test::More tests => 10;
 
 use TestMock;
 use DBConnHandler;
@@ -227,7 +227,7 @@ subtest 'add_scen_to_fea' => sub {
         "ScenarioID" => 1,
         "Position"   => 1,
     });
-    
+
     ok($res, 'add scenarion to feature');
     $res = $ma->add_scen_to_fea({
         "FeatureId"  => 1,
@@ -235,7 +235,7 @@ subtest 'add_scen_to_fea' => sub {
         "Position"   => 1,
     });
     is($res, undef, 'no new scenario feature');
-    
+
     my @error = $err_handler_mock->add_error();
     is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
     is( $error[ 1 ], 'DB_ERROR', 'Error: DB_ERROR' );

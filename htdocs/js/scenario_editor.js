@@ -14,7 +14,13 @@ function init_page_DB() {
 
 function fill_feature_list()
 {
-    var feature_list = create_select_list('feature_list_name', 'feature_list', FEATURE_SELECT_LIST, null, { "prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title" } );
+    var feature_list = create_select_list('feature_list_name', 'feature_list', FEATURE_SELECT_LIST, select_feature, {
+    		"prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title"
+    	}, {
+			class : 'selectpicker',
+			multiple: 'multiple'
+		}
+	);
 
     document.getElementById("feature_list_container").innerHTML = "";
     document.getElementById("feature_list_container").appendChild(feature_list);
@@ -39,7 +45,11 @@ function fill_feature_list()
 
 function fill_scenario_list() {
     document.getElementById("scenario_list").innerHTML = "";
-    var scenario_list = create_select_list('scenario_list_name', 'scenario_list', SCENARIO_SELECT_LIST, null, { "prefix" : SCENARIO_PREFIX, "id" : "ScenarioID", "name" : "Description" });
+    var scenario_list = create_select_list('scenario_list_name', 'scenario_list', SCENARIO_SELECT_LIST, add_scenario_to_feature, { "prefix" : SCENARIO_PREFIX, "id" : "ScenarioID", "name" : "Description"
+    	},{
+    		class : 'selectpicker',
+			multiple: 'multiple'
+	});
 	
     document.getElementById("scenario_list_container").innerHTML = "";
     document.getElementById("scenario_list_container").appendChild(scenario_list);
@@ -89,6 +99,7 @@ function Are_you_sure_you_want_to_delete_feature() {
         {
             "Delete scenarios": {
                 text: 'Delete feature',
+                id: 'delete_feature_dialog_btn',
                 click: function() {
                     $(this).dialog("close");
                     if ( ACTUAL_FEATURE  == feature_data.FeatureID ) {
@@ -235,7 +246,6 @@ function init_page() {
 	    }, 45000);
     } else {
     	login = create_button_as_img('login', login_, "login", "img/update.png", "");
-        document.getElementById('loginForm').appendChild(login);
         $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
         	$('#' + n).hide();
         });
@@ -647,7 +657,12 @@ function create_used_fealist() {
     }));
 
 	var ret_val      = processor(send_cmd(), ret_val);
-    var feature_list = create_select_list('feas_by_scen', 'feas_by_scen', ret_val['get_features_by_scenario_id'], null, { "prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title" });
+    var feature_list = create_select_list('feas_by_scen', 'feas_by_scen', ret_val['get_features_by_scenario_id'], null, {
+    		"prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title"
+		}, {
+			class : 'selectpicker',
+			multiple: 'multiple'
+		});
 
 	document.getElementById("features_by_scenario").appendChild(feature_list);	
 }

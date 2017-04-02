@@ -32,7 +32,7 @@ my $cfg_mock = TestMock->new( 'Cfg' );
 my $template_mock = TestMock->new( 'Template' );
    $template_mock->mock( 'new' );
    $template_mock->mock( 'fill_in' );
-   $template_mock->mock( 'return_string' );  
+   $template_mock->mock( 'return_string' );
 
 $ma = Modell_ajax->new( { DB_HANDLE => $db } );
 
@@ -56,24 +56,24 @@ sub INIT {
 subtest "check_input_data_for_save_new_user" => sub {
     my $res = $ma->check_input_data_for_save_new_user();
     ok(!$res, 'no param');
-    
+
     $res = $ma->check_input_data_for_save_new_user({ email => 'email'});
     ok(!$res, 'no param');
-    
-    $res = $ma->check_input_data_for_save_new_user({ 
+
+    $res = $ma->check_input_data_for_save_new_user({
         email => 'email',
         password => 'password'
     });
     ok(!$res, 'no param');
-    
-    $res = $ma->check_input_data_for_save_new_user({ 
+
+    $res = $ma->check_input_data_for_save_new_user({
         email => 'email',
         password => 'password',
         username => 'username'
     });
     ok(!$res, 'no param');
-    
-    $res = $ma->check_input_data_for_save_new_user({ 
+
+    $res = $ma->check_input_data_for_save_new_user({
         email => 'email',
         password => 'password',
         username => 'username',
@@ -84,12 +84,12 @@ subtest "check_input_data_for_save_new_user" => sub {
 
 subtest 'saveNewUser' => sub {
     my $res = $ma->saveNewUser({});
-    
+
     my @error = $err_handler_mock->add_error();
     is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
     is( $error[ 1 ], 'PARAM_ERROR', 'Error: PARAM_ERROR' );
     $err_handler_mock->empty_buffers( 'add_error' );
-    
+
     $res = $ma->saveNewUser({
         map { $_ => $_ } qw(email password username name)
     });
@@ -101,7 +101,7 @@ subtest 'saveNewUser' => sub {
         }
     });
     ok( $res->[0]->{ partner_id }, 'new user added' );
-    
+
     $res = $ma->saveNewUser({
         map { $_ => $_ } qw(email password username name)
     });
@@ -110,7 +110,7 @@ subtest 'saveNewUser' => sub {
     is( ref $error[ 0 ], 'Modell_ajax', 'correct package' );
     is( $error[ 1 ], 'USER_EXISTS', 'Error: USER_EXISTS' );
     $err_handler_mock->empty_buffers( 'add_error' );
-    
+
 };
 
 subtest 'send_activation_request' => sub {
