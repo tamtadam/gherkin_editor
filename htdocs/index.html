@@ -10,6 +10,11 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery-resizable.js"></script>
 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script type="text/javascript" src="js/MD5.js"></script>
@@ -23,7 +28,7 @@
 
 <script>
     $(document).ready(function() {
-		init_page();	
+		init_page();	 
     });
 </script>
 
@@ -31,27 +36,31 @@
 </head>
 <body>
 	 <div id="menu"class="header">
-			<ul>
-				<li><a href="reg.html">Registration</a></li>
-				<li>
-					<div id="loginContent" >
-							<div id="loginResult" >
-							</div>
-							<div id="loginForm" name="loginForm" method="post" action="" >
+			
+				<a href="reg.html" class="btn btn-info" role="button">Registration</a>
+				
+				<div id="loginContent" class="form-group" >
+						<div id="loginResult" >
+						</div>
+						<div id="loginForm" name="loginForm" method="post" action="" class="input-group" >
+						
+							  <div class="input-group">
+								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+								<input id="username" type="text" class="form-control" name="username" placeholder="UserName">
+							  </div>	
+							  
+							  <div class="input-group">
+								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+								<input id="password" type="text" class="form-control" name="password" placeholder="Password">
+							  </div>
 							
-							   <label for="username">Username</label>
-								<input type="text" id="username" name="username" class="text" size="20" />
-							
-								<label for="password">Password</label>
-								<input type="password" id="password" name="password" class="text" size="20" />
-								<br>
-								<img id="login"></img>
-								<img id="logout"></img>
-							
-							</div>
-					</div>				
-				</li>
-			</ul>	
+							<img id="login" class='img-responsive'></img>
+							<img id="logout" class='img-responsive'></img>
+						
+						</div>
+				</div>				
+				
+				
 	</div>
 	
 	<div class="wrapper">
@@ -65,8 +74,8 @@
 						</h4>
 						<input type="text" id="add_new_feature_input"></input>
 						<br>
-						<img id="add_item_to_feature_list_btn">
-						<img id="delete_item_from_feature_list_btn">
+						<img id="add_item_to_feature_list_btn" class='img-rounded'>
+						<img id="delete_item_from_feature_list_btn" class='img-rounded'>
 				</div>
 				
 				<div id='Scenario_list' >
@@ -77,8 +86,8 @@
 						</h4>
 						<input type="text" id="add_new_scenario_input"></input>
 						<br>
-						<img id="add_item_to_scenario_list_btn">
-						<img id="delete_item_from_scenario_list_btn">
+						<img id="add_item_to_scenario_list_btn" class='img-rounded'>
+						<img id="delete_item_from_scenario_list_btn" class='img-rounded'>
 				</div>		
 						
 				<div id="Scenarios_in_Feature-cont"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
@@ -113,9 +122,6 @@
 						<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
 						</div>
 
-                        <div id="RenameScenarioDialog">
-                            <input id="new_scenario_name"></input>
-                        </div>
 						<div id="Are_you_sure"></div>					
 					</div>
 				</div>
