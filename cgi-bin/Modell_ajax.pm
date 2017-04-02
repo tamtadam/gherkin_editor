@@ -94,9 +94,16 @@ sub get_feature_list {
 
     $result = $self->my_select(
                                 {
-                                  'from'   => 'Feature',
-                                  'select' => 'ALL',
-                                  'sort'   => 'Title',
+                                  'from'   => 'feature AS f',
+                                  'select' => [
+                                  				'f.Title             AS Title',
+                                  				'f.Locked            AS Locked',
+                                  				'f.FeatureID         AS FeatureID',
+                                  				'count(fs.FeatureID) AS Cnt'
+                                  			  ],
+                                  'group_by' => "f.FeatureID",
+                                  "join" => "LEFT JOIN featurescenario fs ON (f.FeatureID = fs.FeatureID)",		
+                                  "sort" => "f.Title",
                                 }
                               ) ;
     if ( !$result ) {
@@ -212,7 +219,7 @@ sub get_scenario_locked_status {
     my $result = $self->my_select(
               {
                 'from'   => 'Scenario',
-                'select' => [ 'Locked AS LockedStatus', 'Description  AS ScenarioName', 'ScenarioID  AS ScenarioID', ],
+                'select' => [ 'Locked AS LockedStatus', 'Title  AS ScenarioName', 'ScenarioID  AS ScenarioID', ],
                 'where' => { 'Locked' => 1 },
               }
     ) ;
@@ -425,7 +432,7 @@ sub add_new_scen_to_scenlist {
                                      'from'   => 'Scenario',
                                      'select' => 'ScenarioID',
                                      'where'  => {
-                                                  "Description" => $_[ 0 ]->{ 'Description' },
+                                                  "Title" => $_[ 0 ]->{ 'Title' },
                                                 }
                                    }
                                  )
@@ -434,7 +441,7 @@ sub add_new_scen_to_scenlist {
             $new_scenario = $self->my_insert(
                                               {
                                                 'insert' => {
-                                                              'Description' => $_[ 0 ]->{ 'Description' },
+                                                              'Title' => $_[ 0 ]->{ 'Title' },
                                                             },
                                                 'table'  => 'Scenario',
                                                 'select' => 'ScenarioID',
@@ -453,11 +460,11 @@ sub add_new_scen_to_scenlist {
 #unit tested
 sub check_input_data_for_add_scenario {
     my $self = shift ;
-    if ( $_[ 0 ]->{ 'Description' } ) {
+    if ( $_[ 0 ]->{ 'Title' } ) {
         return 1 ;
     } else {
         return 0 ;
-    } ## end else [ if ( $_[ 0 ]->{ 'Description'...})]
+    } ## end else [ if ( $_[ 0 ]->{ 'Title'...})]
 } ## end sub check_input_data_for_add_scenario
 
 #OK
@@ -470,15 +477,23 @@ sub get_scen_list {
                                 {
                                   'from'   => 'Scenario',
                                   'select' => 'ALL',
-                                  "sort"   => "Description",
+                                  "sort"   => "Title",
                                 }
                               ) ;
-
+	
     if ( !$result ) {
         $self->add_error( 'SCENARIO_LIST' ) ;
 
     } ## end if ( !$result )
+    
+    if($result){
+    	foreach(@{$result}){
+    		$_->{Cnt} = 0;
+    	}
+    }
+    
     return $result || [] ;
+    
 } ## end sub get_scen_list
 
 #OK
@@ -645,7 +660,7 @@ sub rename_scenario {
     return $self->my_update({
         table  => 'Scenario',
         update => {
-            Description => $param->{NewScenarioName}
+            Title => $param->{NewScenarioName}
         },
         where => {
             ScenarioID => $param->{ScenarioID},
@@ -720,7 +735,7 @@ sub get_scen_list_by_fea {
                          'fea.FeatureID         AS FeatureID',
                          'fea.Title             AS FeatureName',
                          'fea_scen.ScenarioID   AS ScenarioID',
-                         'scen.Description      AS ScenarioName'
+                         'scen.Title      AS ScenarioName'
                        ],
            join   => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID       = fea_scen.FeatureID )
                       JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
@@ -1036,7 +1051,7 @@ sub get_scen_name_by_scen_id {
     $scenario_datas = $self->my_select(
                       {
                         'from'   => 'FeatureScenario AS fea_scen',
-                        'select' => [ 'fea_scen.ScenarioID   AS ScenarioID', 'scen.Description      AS ScenarioName' ],
+                        'select' => [ 'fea_scen.ScenarioID   AS ScenarioID', 'scen.Title      AS ScenarioName' ],
                         'join'   => 'JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
                         'where'  => {
                                      "fea_scen.ScenarioID" => $_[ 0 ]->{ 'fea_scen.ScenarioID' }

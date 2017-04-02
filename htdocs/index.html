@@ -35,9 +35,13 @@
 
 </head>
 <body>
+
+
+
 	 <div id="menu"class="header">
 			
 				<a href="reg.html" class="btn btn-info" role="button">Registration</a>
+				<button id="login" class="btn btn-info" role="button">Login</button>
 				
 				<div id="loginContent" class="form-group" >
 						<div id="loginResult" >
@@ -51,14 +55,15 @@
 							  
 							  <div class="input-group">
 								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-								<input id="password" type="text" class="form-control" name="password" placeholder="Password">
+								<input id="password" type="password" class="form-control" name="password" placeholder="Password">
 							  </div>
 							
 							<img id="login" class='img-responsive'></img>
 							<img id="logout" class='img-responsive'></img>
 						
 						</div>
-				</div>				
+				</div>	
+	
 				
 				
 	</div>
@@ -67,28 +72,39 @@
 		<div class="inner-wrapper">
 			<div class="left pane">
 				<div id='Feature_list' >
-						<h3>Feature list</h3>
-						<h4 id='feature_list_container'>
-							<select id="feature_list" >
-							</select>
-						</h4>
+							<div class="dropdown">					
+							 <button class="btn btn-default dropdown-toggle" type="button" id="Feature_list_title" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							   Featurelist
+							   <span class="caret"></span>
+							 </button>
+							 <ul id="feature_list" class="dropdown-menu" aria-labelledby="dropdownMenu2">
+							 </ul>
+							</div>
+
 						<input type="text" id="add_new_feature_input"></input>
 						<br>
-						<img id="add_item_to_feature_list_btn" class='img-rounded'>
-						<img id="delete_item_from_feature_list_btn" class='img-rounded'>
+						
+						<button id="add_item_to_feature_list_btn" class="btn btn-info" role="button">Add</button>
+						<button id="delete_item_from_feature_list_btn" class="btn btn-info" role="button">Delete</button>
 				</div>
-				
+			
 				<div id='Scenario_list' >
-						<h3>Scenario list</h3>
-						<h4 id='scenario_list_container'>
-							<select id="scenario_list" >
-							</select>
-						</h4>
+							<div class="dropdown">					
+							 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							   Scenariolist
+							   <span class="caret"></span>
+							 </button>
+							 <ul id="scenario_list" class="dropdown-menu" aria-labelledby="dropdownMenu2">
+							 </ul>
+							</div>
+
 						<input type="text" id="add_new_scenario_input"></input>
 						<br>
-						<img id="add_item_to_scenario_list_btn" class='img-rounded'>
-						<img id="delete_item_from_scenario_list_btn" class='img-rounded'>
-				</div>		
+						
+						<button id="add_item_to_scenario_list_btn" class="btn btn-info" role="button">Add</button>
+						<button id="delete_item_from_scenario_list_btn" class="btn btn-info" role="button">Delete</button>
+				</div>			
+			
 						
 				<div id="Scenarios_in_Feature-cont"><p id='Scenarios_in_Feature_title'></p><img id="close_feature">
 						<h3 id='FeatureScenario_h3'></h3>

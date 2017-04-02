@@ -14,52 +14,21 @@ function init_page_DB() {
 
 function fill_feature_list()
 {
-    var feature_list = create_select_list('feature_list_name', 'feature_list', FEATURE_SELECT_LIST, select_feature, {
-    		"prefix" : FEATURE_PREFIX, "id" : "FeatureID", "name" : "Title"
-    	}, {
-			class : 'selectpicker',
-			multiple: 'multiple'
-		}
-	);
+    document.getElementById("feature_list").innerHTML = "";
 
-    document.getElementById("feature_list_container").innerHTML = "";
-    document.getElementById("feature_list_container").appendChild(feature_list);
+	var feature_list = create_select_list('feature_list', FEATURE_SELECT_LIST, select_feature);
 
-    $(feature_list).find('option').map(function(i, j){ $( j ).addClass('empty') } );
-
-	if ( FEATURE_SCENARIO_IDS !== null ) {
-		$(feature_list).find('option').get().filter(function(i,j){
-			return $.grep(FEATURE_SCENARIO_IDS, function(k,l){
-				return i.value == k.FeatureID;
-			}).length > 0;
-		}).map(function(i, j){
-			$( i ).addClass('not_empty') ;
-		});
-	}
-	
-    create_button_as_img('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature, "Add sentence", "img/clear.png");
-    create_button_as_img('add_item_to_feature_list_btn', add_new_feature_to_feature_list, "Add item", "img/add.png");
-
-    document.getElementById('feature_list').ondblclick = select_feature;
+    create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
+    create_button('add_item_to_feature_list_btn', add_new_feature_to_feature_list,{}, "bootstrap");    
 }
 
 function fill_scenario_list() {
     document.getElementById("scenario_list").innerHTML = "";
-    var scenario_list = create_select_list('scenario_list_name', 'scenario_list', SCENARIO_SELECT_LIST, add_scenario_to_feature, { "prefix" : SCENARIO_PREFIX, "id" : "ScenarioID", "name" : "Description"
-    	},{
-    		class : 'selectpicker',
-			multiple: 'multiple'
-	});
+    
+    var scenario_list = create_select_list('scenario_list', SCENARIO_SELECT_LIST, add_scenario_to_feature);
 	
-    document.getElementById("scenario_list_container").innerHTML = "";
-    document.getElementById("scenario_list_container").appendChild(scenario_list);
-
-    $(scenario_list).find('option').map(function(i, j){ $( j ).addClass('empty') } );
-
-    create_button_as_img('delete_item_from_scenario_list_btn', Are_you_sure_you_want_to_delete_scenario, "Add sentence", "img/clear.png");
-    create_button_as_img('add_item_to_scenario_list_btn', add_new_scenario_to_scenario_list, "Add item", "img/add.png");	
-
-    document.getElementById('scenario_list').ondblclick = add_scenario_to_feature;
+    create_button('delete_item_from_scenario_list_btn', Are_you_sure_you_want_to_delete_scenario, {}, "bootstrap");
+    create_button('add_item_to_scenario_list_btn', add_new_scenario_to_scenario_list, {}, "bootstrap");	
 }
 
 function add_new_scenario_to_scenario_list() {
@@ -67,7 +36,7 @@ function add_new_scenario_to_scenario_list() {
 
 	$('#add_new_scenario_input').val('');
     push_cmd("add_new_scen_to_scenlist", JSON.stringify({
-        'Description': scenario_name,
+        'Title': scenario_name,
     }));
     processor(send_cmd());
 
@@ -245,7 +214,7 @@ function init_page() {
 	        get_locked_status();
 	    }, 45000);
     } else {
-    	login = create_button_as_img('login', login_, "login", "img/update.png", "");
+    	login = create_button('login', login_, {}, "bootstrap");
         $.each(['Scenarios_in_Feature-cont', 'Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
         	$('#' + n).hide();
         });
@@ -280,7 +249,7 @@ function select_feature () {
             });
         }
     }
-	modify_feature();    	
+	modify_feature(this);    	
 }
 
 function add_scenario_to_feature() {
@@ -412,12 +381,12 @@ function Feature_status(async) {
     return ret_val['get_feature_locked_status'];
 }
 
-function modify_feature() {
-    open_dialog_for_scenarios_in_feauture();
-    update_scenario_list_in_feature();
+function modify_feature(dom) {
+    open_dialog_for_scenarios_in_feauture(dom);
+    update_scenario_list_in_feature(dom);
 }
 
-function open_dialog_for_scenarios_in_feauture() {
+function open_dialog_for_scenarios_in_feauture(dom) {
 	//delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
 	
 	if ( FEATURE_LOCKED_BY_ME == false ) {
@@ -445,7 +414,9 @@ function open_dialog_for_scenarios_in_feauture() {
 	    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
 	}
 	create_button_as_img('close_feature', close_feature, 'Close Feaure', "img/clear.png");
-    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + $('#feature_list option:checked').data('data').Title;
+    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + $(dom).data("data").Title;
+    $("#Feature_list_title").html($(dom).data("data").Title);
+ 
 }
 
 
