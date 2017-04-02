@@ -1,18 +1,23 @@
 html, body {
     height: 100%;
 }
+
+img {
+    class: "img-rounded";
+}
+
 .header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 80px;
+    height: 125px;
     background-color: #ccc;
-
+    
 }
 .wrapper {
     position:absolute;
-    top: 81px;
+    top: 125px;
     right: 0;
     bottom: 0;
     left: 0;
@@ -37,17 +42,27 @@ html, body {
 .center.pane .inner .top,
 .center.pane .inner .bottom{
     display: table-row;
-
+    
 }
 
 .right.pane {
     background-color: #999;
     width: 94px;
     right:0;
-    top:81px;
+    top:125px;
     position: fixed;
     height: 100%;
 }
 #loggedin_user {
-	background-color: #007fff;
+    background-color: #007fff;
+}
+
+.empty{
+    color: grey;
+}
+
+
+
+.not_empty{
+    color: black;
 }
