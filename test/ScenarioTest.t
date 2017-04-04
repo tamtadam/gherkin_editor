@@ -85,12 +85,12 @@ subtest 'clear_scen' => sub {
 
 subtest 'check_input_data_for_add_scenario' => sub {
     my $res = $ma->check_input_data_for_add_scenario({
-        Description => '23123'
+        Title => '23123'
     });
     ok($res, 'all data filled');
 
     $res = $ma->check_input_data_for_add_scenario({
-        Description => undef
+        Title => undef
     });
     ok(0 == $res, 'some data isn\'t filled');
 
@@ -105,6 +105,7 @@ subtest 'get_scen_list' => sub {
     [
           {
             'Description' => 'desc0',
+            'Cnt' => 0,
             'ScenarioID' => 1,
             'Locked' => 0,
             'LastModified' => '2016',
@@ -112,6 +113,7 @@ subtest 'get_scen_list' => sub {
           },
           {
             'Description' => 'desc1',
+            'Cnt' => 0,
             'ScenarioID' => 2,
             'Locked' => 0,
             'Title' => 'TestScenario1',
@@ -119,6 +121,7 @@ subtest 'get_scen_list' => sub {
           },
           {
             'Description' => 'desc2',
+            'Cnt' => 0,
             'ScenarioID' => 3,
             'Title' => 'TestScenario2',
             'Locked' => 0,
@@ -126,6 +129,7 @@ subtest 'get_scen_list' => sub {
           },
           {
             'Title' => 'TestScenario3',
+            'Cnt' => 0,
             'Locked' => 0,
             'LastModified' => '2016',
             'ScenarioID' => 4,

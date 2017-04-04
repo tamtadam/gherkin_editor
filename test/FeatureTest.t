@@ -65,19 +65,19 @@ subtest 'get_feature_list' => sub {
             'FeatureID' => 1,
             'Title' => 'TestFeature0',
             'Locked' => 0,
-            'LastModified' => '2016'
+            'Cnt' => 0
           },
           {
-            'LastModified' => '2016',
             'Locked' => 1,
             'Title' => 'TestFeature1',
-            'FeatureID' => 2
+            'FeatureID' => 2,
+            'Cnt' => 0
           },
           {
             'FeatureID' => 3,
             'Title' => 'TestFeature2',
             'Locked' => 0,
-            'LastModified' => '2016'
+            'Cnt' => 0
           }
         ], 'All feature');
 
@@ -156,6 +156,7 @@ subtest 'Feature_is_locked' => sub {
             FeatureID => 5
         },
     });
+
     is( $fea->[ 0 ]{Locked}, 1, "Locked" );
 
     $res = $ma->Feature_is_locked();

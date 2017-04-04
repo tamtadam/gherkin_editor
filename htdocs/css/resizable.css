@@ -13,7 +13,7 @@ img {
     right: 0;
     height: 125px;
     background-color: #ccc;
-    
+
 }
 .wrapper {
     position:absolute;
@@ -42,7 +42,7 @@ img {
 .center.pane .inner .top,
 .center.pane .inner .bottom{
     display: table-row;
-    
+
 }
 
 .right.pane {

@@ -122,7 +122,7 @@ sub get_feature_scenario_datas {
 
     my $result = $self->my_select(
                                    {
-                                     'from'     => 'FeatureScenario',
+                                     'from'     => 'featurescenario',
                                      'select'   => 'FeatureID',
                                      'group_by' => 'FeatureID',
                                    }
@@ -195,7 +195,7 @@ sub delete_feature {
 
     $result = $self->my_delete(
                                {
-                                 'from'  => 'FeatureScenario',
+                                 'from'  => 'featurescenario',
                                  'where' => {
                                               FeatureID => $params->{ 'FeatureID' },
                                             },
@@ -384,10 +384,10 @@ sub get_features_by_scenario_id {
 
            'select' => [ 'fea.Title     AS Title', 'fea.FeatureID AS FeatureID', ],
 
-           'join' => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID = fea_scen.FeatureID )',
+           'join' => 'JOIN featurescenario AS fea_scen ON ( fea.FeatureID = fea_scen.FeatureID )',
 
            'where' => {
-                        "fea_scen.ScenarioID" => $_[ 0 ]->{ 'fea_scen.ScenarioID' }
+                        "fea_scen.ScenarioID" => $_[ 0 ]->{ 'ScenarioID' }
                       },
             'group_by' => 'fea.FeatureID',
 			'order_by' => 'fea.Title',
@@ -485,15 +485,15 @@ sub get_scen_list {
         $self->add_error( 'SCENARIO_LIST' ) ;
 
     } ## end if ( !$result )
-    
+
     if($result){
     	foreach(@{$result}){
     		$_->{Cnt} = 0;
     	}
     }
-    
+
     return $result || [] ;
-    
+
 } ## end sub get_scen_list
 
 #OK
@@ -507,7 +507,7 @@ sub save_scenarios_to_feature {
         #      $self->update_timestamps( $_[ 0 ]->{ 'FeatureID' }, -1 ) ;
         $self->my_delete(
                           {
-                            'from'   => 'FeatureScenario',
+                            'from'   => 'featurescenario',
                             'select' => '',
                             'where'  => {
                                          "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
@@ -522,8 +522,8 @@ sub save_scenarios_to_feature {
                                                                        "ScenarioID" => $scenario_id,
                                                                        "Position"   => $order_cnt,
                                                                      },
-                                                         'table'  => 'FeatureScenario',
-                                                         'select' => 'FeatureScenarioID',
+                                                         'table'  => 'featurescenario',
+                                                         'select' => 'featurescenarioID',
                                                        }
                                                      ) ;
 
@@ -562,11 +562,11 @@ sub add_scen_to_fea {
             "ScenarioID" => $param->{ 'ScenarioID' },
             "Position"   => $param->{ 'Position' },
         },
-        'table'  => 'FeatureScenario',
-    'select' => 'FeatureScenarioID',
+        'table'  => 'featurescenario',
+    'select' => 'featurescenarioID',
     });
     if ( !$result ) {
-        $self->add_error( 'FEATURESCENARIO' ) ;
+        $self->add_error( 'featurescenario' ) ;
 
     } ## end if ( !$result )
 
@@ -671,14 +671,16 @@ sub rename_scenario {
 #OK
 sub delete_scen_from_fea {
     my $self   = shift ;
-    my $result = undef ;
-    my $params = shift;
-    my @feature_ids = ('ARRAY' eq ref $params->{ 'FeatureID' } ? @{ $params->{ 'FeatureID' } } : $params->{ 'FeatureID' } );
-
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
     if ( $self->check_input_data_for_delete_scenario_from_feature( @_ ) ) {
+        my $result = undef ;
+        my $params = shift;
+        my @feature_ids = ('ARRAY' eq ref $params->{ 'FeatureID' } ? @{ $params->{ 'FeatureID' } } : $params->{ 'FeatureID' } );
+
+
         $result = $self->my_delete(
                                     {
-                                      'from'   => 'FeatureScenario',
+                                      'from'   => 'featurescenario',
                                       'select' => '',
                                       'where'  => {
                                                    "ScenarioID" => $params->{ 'ScenarioID' },
@@ -697,7 +699,7 @@ sub delete_scen_from_fea {
 
 sub check_input_data_for_delete_scenario_from_feature {
     my $self = shift ;
-
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
     if (     $_[ 0 ]->{ 'ScenarioID' }
          and $_[ 0 ]->{ 'FeatureID' } )
     {
@@ -706,22 +708,6 @@ sub check_input_data_for_delete_scenario_from_feature {
         return 0 ;
     } ## end else [ if ( $_[ 0 ]->{ 'ScenarioID'...})]
 } ## end sub check_input_data_for_delete_scenario_from_feature
-
-sub delete_scen_from_fea_by_position {
-    my $self = shift;
-    my $params = shift || $self->add_error( 'PARAM_ERROR' ) and return;
-
-    $self->my_delete(
-        {
-          'from'   => 'FeatureScenario',
-          'where'  => {
-                       "ScenarioID" => $params->{ 'ScenarioID' },
-                       "FeatureID"  => $params->{ 'FeatureID' },
-                       "Position"   => $params->{ 'Position' },
-                     },
-        }
-    );
-}
 
 #OK
 sub get_scen_list_by_fea {
@@ -737,7 +723,7 @@ sub get_scen_list_by_fea {
                          'fea_scen.ScenarioID   AS ScenarioID',
                          'scen.Title      AS ScenarioName'
                        ],
-           join   => 'JOIN FeatureScenario AS fea_scen ON ( fea.FeatureID       = fea_scen.FeatureID )
+           join   => 'JOIN featurescenario AS fea_scen ON ( fea.FeatureID       = fea_scen.FeatureID )
                       JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
            where  => {
                         "fea.FeatureID" => $_[ 0 ]->{ 'FeatureID' }
@@ -751,6 +737,28 @@ sub get_scen_list_by_fea {
     } ## end if ( !$result )
     return $result ;
 } ## end sub get_scen_list_by_fea
+
+sub get_feature_number_by_scen_id {
+    my $self   = shift ;
+    my $result = undef ;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+
+    $result = $self->my_select({
+           from   => 'featurescenario',
+          'select' => [
+                        'count(*) AS cnt'
+                      ],
+           where  => {
+                        "ScenarioID" => $_[ 0 ]->{ 'ScenarioID' }
+                      },
+    });
+
+    if ( !$result ) {
+        $self->add_error( 'SCENLIST_BY_FEA' ) ;
+
+    } ## end if ( !$result )
+    return $result ;
+}
 
 ###########################################################################################
 ###########################################################################################
@@ -934,7 +942,7 @@ sub get_fea_scen_ids {
     my $self = shift ;
     $self->my_select(
                       {
-                        'from'   => 'FeatureScenario',
+                        'from'   => 'featurescenario',
                         'select' => 'ScenarioID',
                         'where'  => {
                                      "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
@@ -948,7 +956,7 @@ sub ScenarioIds_by_FeatureID {
     my $self = shift ;
     $self->my_select(
                       {
-                        'from'   => 'FeatureScenario',
+                        'from'   => 'featurescenario',
                         'select' => 'ScenarioID',
                         'where'  => {
                                      "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
@@ -962,7 +970,7 @@ sub get_scen_id_by_scen_in_fea_id {
     my $self = shift ;
     $self->my_select(
                       {
-                        'from'   => 'FeatureScenario',
+                        'from'   => 'featurescenario',
                         'select' => 'ScenarioID',
                         'where'  => {
                                      "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
@@ -976,7 +984,7 @@ sub get_max_position {
     my $self = shift ;
     $self->my_select(
                       {
-                        'from'   => 'FeatureScenario',
+                        'from'   => 'featurescenario',
                         'select' => 'Position',
                         'where'  => {
                                      "FeatureID" => $_[ 0 ]->{ 'FeatureID' },
@@ -993,10 +1001,10 @@ sub get_act_position_by_fea_scenario_id {
     return
       $result->{ 'VERDICT' } = $self->my_select(
                                                  {
-                                                   'from'   => 'FeatureScenario',
+                                                   'from'   => 'featurescenario',
                                                    'select' => 'Position',
                                                    'where'  => {
-                                                                "FeatureScenarioID" => $_[ 0 ]->{ 'FeatureScenarioID' },
+                                                                "featurescenarioID" => $_[ 0 ]->{ 'featurescenarioID' },
                                                               },
                                                  }
                                                ) ;
@@ -1012,7 +1020,7 @@ sub get_gherkintext_by_fea {
         $feature_with_gherkint_text_by_ids =
           $self->my_select(
                             {
-                              'from'   => 'FeatureScenario',
+                              'from'   => 'featurescenario',
                               'select' => "ScenarioID",
                               'where'  => {
                                            "FeatureID" => $_[ 0 ]->{ 'FeatureID' }
@@ -1050,7 +1058,7 @@ sub get_scen_name_by_scen_id {
 
     $scenario_datas = $self->my_select(
                       {
-                        'from'   => 'FeatureScenario AS fea_scen',
+                        'from'   => 'featurescenario AS fea_scen',
                         'select' => [ 'fea_scen.ScenarioID   AS ScenarioID', 'scen.Title      AS ScenarioName' ],
                         'join'   => 'JOIN Scenario        AS scen     ON ( fea_scen.ScenarioID = scen.ScenarioID )',
                         'where'  => {
