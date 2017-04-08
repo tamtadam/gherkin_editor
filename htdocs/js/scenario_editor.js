@@ -860,8 +860,11 @@ function init_resizable () {
 			$(".right.pane").resizable({
 				handles: "e, w"
 			});
+			$(".center.pane .inner .top").resizable({
+				handles: "n, s"
+			});				
 			$(".center.pane .inner .bottom").resizable({
 				handles: "n, s"
-			});
+			});						
 		});			
 }
