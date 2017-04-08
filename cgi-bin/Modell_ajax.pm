@@ -176,6 +176,50 @@ sub add_new_fea_to_fealist {
     return $result ;
 } ## end sub add_new_fea_to_fealist
 
+
+#TODO add_error!!
+sub add_new_proj_to_projlist {
+    my $self        = shift ;
+    my $result;
+
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $_[ 0 ] ) ;
+
+    if ( $self->check_input_data_for_add_feature( @_ ) and
+         $_[ 0 ]->{ 'Title' } =~ /\w+/ ) {
+        unless (
+                 $self->my_select(
+                                   {
+                                     'from'   => 'project',
+                                     'select' => 'ProjectID',
+                                     'where'  => {
+                                                  "Title" => $_[ 0 ]->{ 'Title' },
+                                                }
+                                   }
+                                 )
+               )
+        {
+            $result = $self->my_insert(
+                                                       {
+                                                         'insert' => {
+                                                                       'Title' => $_[ 0 ]->{ 'Title' },
+                                                                     },
+                                                         'table'  => 'project',
+                                                         'select' => 'ProjectID',
+                                                       }
+                                                     ) ;
+
+        } else {
+            $self->add_error( 'FEATURE_NOT_ADDED' );
+        }
+    } else {
+        $self->add_error( 'FAILEDPARAMETER' ) ;
+
+    } ## end else [ if ( $self->check_input_data_for_add_feature...)]
+
+    return $result ;
+} ## end sub add_new_fea_to_fealist
+
+
 #unit tested
 #OK
 sub check_input_data_for_add_feature {
@@ -3732,4 +3776,33 @@ sub get_screenstatename_from_path {
     return $result ;
 } ## end sub get_screenstatename_from_path
 
-1 ;
+
+sub get_project_list {
+    my $self   = shift ;
+    my $result = undef ;
+
+    $result = $self->my_select(
+                                {
+                                  'from'   => 'project',
+                                  'select' => 'ALL',
+                                  "sort"   => "Title",
+                                }
+                              ) ;
+	#TODO Project_list
+    if ( !$result ) {
+        $self->add_error( 'SCENARIO_LIST' ) ;
+
+    } ## end if ( !$result )
+
+    if($result){
+    	foreach(@{$result}){
+    		$_->{Cnt} = 0;
+    	}
+    }
+
+    return $result || [] ;
+
+} ## end sub get_scen_list
+
+
+1;

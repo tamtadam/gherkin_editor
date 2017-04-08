@@ -4,22 +4,42 @@ function init_page_DB() {
     push_cmd("get_feature_list", JSON.stringify({'get': 1 }));
     push_cmd("get_feature_scenario_datas", JSON.stringify({'get': 1 }));
 	push_cmd("get_scen_list", JSON.stringify({'get': 1 }));
+	push_cmd("get_project_list", JSON.stringify({'get': 1 }));
     processed_data = processor(send_cmd());
 
     FEATURE_SELECT_LIST  = processed_data['get_feature_list'];
     FEATURE_SCENARIO_IDS = processed_data['get_feature_scenario_datas'];
 	SCENARIO_SELECT_LIST = processed_data['get_scen_list'];
+	PROJECT_LIST         = processed_data['get_project_list'];
 	get_locked_status();
 }
 
-function fill_feature_list()
-{
+function fill_feature_list() {
     document.getElementById("feature_list").innerHTML = "";
 
-	var feature_list = create_select_list('feature_list', FEATURE_SELECT_LIST, select_feature);
+	create_select_list('feature_list', FEATURE_SELECT_LIST, select_feature);
 
     create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
     create_button('add_item_to_feature_list_btn', add_new_feature_to_feature_list,{}, "bootstrap");
+}
+
+function fill_project_list() {
+	document.getElementById("project_list").innerHTML = "";
+
+    create_list_group('project_list', PROJECT_LIST, select_project, {}, {
+    	class : 'list-group-item',
+    	href  : '#'
+    });
+	
+	//create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
+    create_button('add_item_to_project_list_btn', add_new_project_to_project_list,{}, "bootstrap");
+}
+
+function select_project() {		
+	$that = $(this);
+	
+	$('.list-group').find('a').removeClass('active');
+	$that.addClass('active');
 }
 
 function fill_scenario_list() {
@@ -44,6 +64,17 @@ function add_new_scenario_to_scenario_list() {
     processor(send_cmd());
 
     update_scenario_list();
+}
+
+function add_new_project_to_project_list() {
+    //var project_name = selected_item_id = $("#project_list a.active").attr('value');
+    var project_name= document.getElementById("add_new_project_input").value;
+	$('#add_new_project_input').val('');
+    push_cmd("add_new_proj_to_projlist", JSON.stringify({
+        'Title': project_name
+    }));
+    processor(send_cmd());
+    update_project_list();	
 }
 
 function add_new_feature_to_feature_list() {
@@ -120,7 +151,21 @@ function update_feature_and_scenario_list() {
     fill_feature_list();
 }
 
- function update_scenario_list() {
+function update_project_list() {
+    var processed_data = {};
+
+    push_cmd("get_project_list", JSON.stringify({
+        'get': 1
+    }));
+
+    processed_data = processor(send_cmd());
+
+    PROJECT_LIST  = processed_data['get_project_list'];
+
+    fill_project_list();	
+}
+
+function update_scenario_list() {
     var processed_data = {};
 
     push_cmd("get_scen_list", JSON.stringify({
@@ -197,12 +242,24 @@ function locked_status(table) {
     }
 }
 
+function init_onclick() {
+	var project_name,
+	    proj;
+		
+	$("#save_projects").click(function () {
+		project_name = "Selected project: " + $("ul#project_list a.active").text();
+		$("#act_project").text(project_name);
+	});	
+	
+}
+
 function init_page() {
 	var feature_id,
 	    feature_name,
 		login;
 
 	init_resizable();
+	init_onclick();
 	
 	if ( session ) {
 	    $.each(['Scenario_list', 'Feature_list', 'Sentence_editor'], function(i, n){
@@ -217,6 +274,7 @@ function init_page() {
     	init_page_DB();
 	    fill_feature_list();
 		fill_scenario_list();
+		fill_project_list();
 	    sortable_li();
 	
 	    setInterval(function() {
@@ -855,16 +913,28 @@ function logout_(node) {
 function init_resizable () {
 		$(function () {
 			$(".left.pane").resizable({
-				handles: "e, w"
+				handles: "n, s, e, w"
 			});
 			$(".right.pane").resizable({
-				handles: "e, w"
+				handles: "n, s, e, w"
 			});
 			$(".center.pane .inner .top").resizable({
-				handles: "n, s"
+				handles: "n, s, e, w"
 			});				
 			$(".center.pane .inner .bottom").resizable({
-				handles: "n, s"
-			});						
+				handles: "n, s, e, w"
+			});
+			$('.modal-content').resizable({
+				//alsoResize: ".modal-dialog",
+				minHeight: 300,
+				minWidth: 300
+			});
+			$('.modal-dialog').draggable();
+
+			$('#myModal').on('show.bs.modal', function () {
+				$(this).find('.modal-body').css({
+					'max-height':'100%'
+				});
+			});		
 		});			
 }
