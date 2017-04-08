@@ -131,29 +131,34 @@
 			</div>
 			<div class="center pane">
 				<div class="inner">
-					<div class="top">
-						<div id="Sentence_editor" >
-								<h3>Sentence editor</h3>
-						</div>	
-
-						<div id="Delete_feature_from_feature_list" Title ="Are you sure you want to delete the selected feature?">
-						</div>
-
-						<div id="Delete_scenario_from_features" style="display:none" Title ="From which feature want you delete scenario?">
-                          <div class="panel panel-default">
-                            <div class="panel-heading">Feature
-                            <div class="panel-body">
-                                <div id="feas_by_scen" class="list-group">
-                                </div>
-                            </div>
-                          </div>
-						</div>
-						
-
-						<div id="Delete_scenario" Title ="Are you sure you want to delete the selected scenario?">
-						</div>
-
-						<div id="Are_you_sure"></div>					
+					<div id = "top" class="top">
+					
+					
+					
+						<div class="container">
+						  <ul class="nav nav-pills">
+							<li class="active"><a data-toggle="pill" href="#avalaible_templates">Avalaible template</a></li>
+							<li><a data-toggle="pill" href="#new_template">Add new</a></li>
+						  </ul>
+						</div>					
+						  <div class="tab-content">
+							<div id="avalaible_templates" class="tab-pane fade in active">
+								<ul class="list-group">
+								  <li class="list-group-item">First item</li>
+								  <li class="list-group-item">Second item</li>
+								  <li class="list-group-item">Third item</li>
+								</ul>  
+							</div>
+							<div id="new_template" class="tab-pane fade">
+							    <h3>New</h3>
+								<input type="text" id="sentence_temp"></input>
+								<button id="add_sentence_temp" class="btn btn-info" role="button">Add</button>							  
+							</div>
+						  </div>									
+					</div>
+				
+					<div class="bottom">
+						<div>Editor</div>
 					</div>
 				</div>
 			</div>
