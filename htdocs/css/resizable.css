@@ -52,8 +52,19 @@ html, body {
     position: fixed;
     height: 100%;
 }
+.modal-content.ui-resizable {
+  
+}
+
 #loggedin_user {
     background-color: #007fff;
 }
 
+#act_project {
+	background-color: #999;
+}
+
+.active {
+    background: #f00;
+}
 
