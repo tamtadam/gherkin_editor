@@ -3804,5 +3804,46 @@ sub get_project_list {
 
 } ## end sub get_scen_list
 
+#TODO add_error
+sub get_template_list_by_projectid {
+    my $self   = shift ;
+	my $params = shift ;
+    my $result = undef ;
+
+	
+    $result = $self->my_select(
+        {
+           'from'   => 'project_template as project_temp',
+           'select' => [ 'proj.Title AS ProjectName',
+                         'sent_temp.SentenceTemplate AS Title'],
+    
+           'join' => 'JOIN project as proj ON (project_temp.ProjectID = proj.ProjectID)
+		              JOIN sentencetemplate as sent_temp ON (project_temp.SentenceTemplateID = sent_temp.SentenceTemplateID ) ' ,
+    
+           'where' => { "proj.Title" => $params->{ 'ProjectName' } }
+        }
+    ) ;
+							  
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
+						  
+	#TODO Project_list
+    if ( !$result ) {
+        $self->add_error( 'SCENARIO_LIST' ) ;
+    
+    } ## end if ( !$result )
+    
+    if($result){
+    	foreach(@{$result}){
+    		$_->{Cnt} = 0;
+    	}
+    }
+    
+    return $result || [] ;
+
+} 
+
+
+
+
 
 1;

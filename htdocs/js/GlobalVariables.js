@@ -5,6 +5,7 @@ var ASYNC = 1 ;
 var FEATURE_PREFIX       = "feature_" ;
 var FEATURE_SELECT_LIST  = [];
 var FEATURE_SCENARIO_IDS = [];
+var PROJECT_LIST = [];
 
 var ACTUAL_FEATURE  = -1;
 
