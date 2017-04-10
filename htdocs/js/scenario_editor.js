@@ -5,12 +5,14 @@ function init_page_DB() {
     push_cmd("get_feature_scenario_datas", JSON.stringify({'get': 1 }));
 	push_cmd("get_scen_list", JSON.stringify({'get': 1 }));
 	push_cmd("get_project_list", JSON.stringify({'get': 1 }));
+	push_cmd("get_template_list_by_projectid", JSON.stringify({'get': 1 }));
     processed_data = processor(send_cmd());
 
     FEATURE_SELECT_LIST  = processed_data['get_feature_list'];
     FEATURE_SCENARIO_IDS = processed_data['get_feature_scenario_datas'];
 	SCENARIO_SELECT_LIST = processed_data['get_scen_list'];
 	PROJECT_LIST         = processed_data['get_project_list'];
+	TEMPLATE_LIST        = processed_data['get_template_list_by_projectid'];
 	get_locked_status();
 }
 
@@ -21,6 +23,10 @@ function fill_feature_list() {
 
     create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
     create_button('add_item_to_feature_list_btn', add_new_feature_to_feature_list,{}, "bootstrap");
+}
+
+function fill_template_list() {
+	
 }
 
 function fill_project_list() {
@@ -244,13 +250,30 @@ function locked_status(table) {
 
 function init_onclick() {
 	var project_name,
-	    proj;
+	    proj,
+		datas_from_server;
 		
 	$("#save_projects").click(function () {
 		project_name = "Selected project: " + $("ul#project_list a.active").text();
 		$("#act_project").text(project_name);
+		datas_from_server = get_template_projectname($("ul#project_list a.active").text());
+		document.getElementById("avalaible_templates").innerHTML = "";
+
+		create_list_group('avalaible_templates', datas_from_server, select_project, {}, {
+			class : 'list-group-item',
+			href  : '#'
+		});
 	});	
 	
+}
+
+function get_template_projectname(project_name) {
+	var processed_data = new Object();
+	push_cmd("get_template_list_by_projectid", JSON.stringify({'ProjectName': project_name }));
+
+    processed_data = processor(send_cmd());
+
+	return processed_data['get_template_list_by_projectid'];		
 }
 
 function init_page() {
