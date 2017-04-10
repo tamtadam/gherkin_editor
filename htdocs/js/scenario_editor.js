@@ -17,20 +17,36 @@ function init_page_DB() {
 }
 
 function fill_feature_list() {
-    document.getElementById("feature_list").innerHTML = "";
+    $("feature_list").html('');
 
-	create_select_list('feature_list', FEATURE_SELECT_LIST, select_feature);
+    create_list_group('feature_list', FEATURE_SELECT_LIST, select_feature, {}, {
+    	class : 'list-group-item',
+    	href  : '#'
+    });
 
     create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
     create_button('add_item_to_feature_list_btn', add_new_feature_to_feature_list,{}, "bootstrap");
+    create_button('open_feature_btn', open_feature, {}, "bootstrap");
+
 }
+
+function select_feature() {
+	$(this).parent().children().removeClass('selected')
+	$(this).parent().children().removeClass('active');
+
+	$(this).addClass('selected');
+    $(this).addClass('active');
+
+    $('#add_new_feature_input').val($(this).html());
+}
+
 
 function fill_template_list() {
 	
 }
 
 function fill_project_list() {
-	document.getElementById("project_list").innerHTML = "";
+	$('#project_list').html('');
 
     create_list_group('project_list', PROJECT_LIST, select_project, {}, {
     	class : 'list-group-item',
@@ -42,16 +58,17 @@ function fill_project_list() {
 }
 
 function select_project() {		
-	$that = $(this);
-	
 	$('.list-group').find('a').removeClass('active');
-	$that.addClass('active');
+	$('.list-group').find('a').removeClass('selected');
+
+	$(this).addClass('active');
+	$(this).addClass('selected');
 }
 
 function fill_scenario_list() {
-    document.getElementById("scenario_list").innerHTML = "";
+    $("#scenario_list").html('');
 
-    var scenario_list = create_list_group('scenario_list', SCENARIO_SELECT_LIST, add_scenario_to_feature, {}, {
+    create_list_group('scenario_list', SCENARIO_SELECT_LIST, add_scenario_to_feature, {}, {
     	class : 'list-group-item',
     	href  : '#'
     });
@@ -61,38 +78,29 @@ function fill_scenario_list() {
 }
 
 function add_new_scenario_to_scenario_list() {
-    var scenario_name= document.getElementById("add_new_scenario_input").value;
-
-	$('#add_new_scenario_input').val('');
     push_cmd("add_new_scen_to_scenlist", JSON.stringify({
-        'Title': scenario_name,
+        'Title' : $("add_new_scenario_input").val() || '',
     }));
     processor(send_cmd());
-
+    $('#add_new_scenario_input').val('');
     update_scenario_list();
 }
 
 function add_new_project_to_project_list() {
-    //var project_name = selected_item_id = $("#project_list a.active").attr('value');
-    var project_name= document.getElementById("add_new_project_input").value;
-	$('#add_new_project_input').val('');
     push_cmd("add_new_proj_to_projlist", JSON.stringify({
-        'Title': project_name
+        'Title': $("#add_new_project_input").val() || ''
     }));
     processor(send_cmd());
+	$('#add_new_project_input').val('');
     update_project_list();	
 }
 
 function add_new_feature_to_feature_list() {
-    var feature_name = document.getElementById('add_new_feature_input').value;
-
-    $('#add_new_feature_input').val('');
-
     push_cmd("add_new_fea_to_fealist", JSON.stringify({
-        'Title': feature_name
+        'Title': $('add_new_feature_input').val() || ''
     }));
     processor(send_cmd());
-
+    $('add_new_feature_input').val('');
     update_feature_and_scenario_list();
 }
 
@@ -158,16 +166,12 @@ function update_feature_and_scenario_list() {
 }
 
 function update_project_list() {
-    var processed_data = {};
-
     push_cmd("get_project_list", JSON.stringify({
         'get': 1
     }));
 
-    processed_data = processor(send_cmd());
-
+    var processed_data = processor(send_cmd());
     PROJECT_LIST  = processed_data['get_project_list'];
-
     fill_project_list();	
 }
 
@@ -311,12 +315,9 @@ function init_page() {
     }
 }
 
-function select_feature () {
-	$(this).parent().filter('li').removeClass('selected');
-	$(this).addClass('selected');
-
-	feature_id = $(this).data('data').FeatureID;
-	feature_name = $(this).data('data').Title;
+function open_feature () {
+	feature_id = $('#feature_list a.selected').data('data').FeatureID;
+	feature_name = $('#feature_list a.selected').data('data').Title;
 	    	
 	if (-1 == ACTUAL_FEATURE) {
         ACTUAL_FEATURE = feature_id;
@@ -485,11 +486,11 @@ function Feature_status(async) {
 }
 
 function modify_feature(dom) {
-    open_dialog_for_scenarios_in_feauture(dom);
-    update_scenario_list_in_feature(dom);
+    open_dialog_for_scenarios_in_feauture();
+    update_scenario_list_in_feature();
 }
 
-function open_dialog_for_scenarios_in_feauture(dom) {
+function open_dialog_for_scenarios_in_feauture() {
 	//delete_scen_from_fea_btn1 = create_button_as_img("del_scen_from_fea_btn_" + li_id, delete_scenario_from_fea_dialog, "Add scenario", "img/clear.png");
 	
 	if ( FEATURE_LOCKED_BY_ME == false ) {
@@ -516,7 +517,7 @@ function open_dialog_for_scenarios_in_feauture(dom) {
 	    var ret_val = save_feature_file();
 	    //create_link_for_DownloadFile( ret_val['Save_Feature'], 'get_feature_text');
 	}
-    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + $(dom).data("data").Title;
+    document.getElementById("Scenarios_in_Feature_title").innerHTML = "Selected feature: " + $('#feature_list .selected').data('data').Title;
 	create_button('close_feature', close_feature, {}, "bootstrap").onclick = close_feature;
 
 }
@@ -526,10 +527,11 @@ function close_feature () {
     if (FEATURE_LOCKED_BY_ME == true) {
         set_Feature_unlocked(ACTUAL_FEATURE);
     }
+    ACTUAL_FEATURE = -1;
     $("#Scenarios_in_Feature li").remove();
     $("#Scenarios_in_Feature-cont").hide();
     $('#feature_list .selected ').removeClass('selected');
-
+    $('#feature_list .active ').removeClass('active');
 }
 
 //TODO: refactor
