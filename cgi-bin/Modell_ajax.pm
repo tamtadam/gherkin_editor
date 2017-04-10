@@ -179,46 +179,52 @@ sub add_new_fea_to_fealist {
 
 #TODO add_error!!
 sub add_new_proj_to_projlist {
-    my $self        = shift ;
+    my $self   = shift ;
+    my $params = shift || {};
     my $result;
 
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $_[ 0 ] ) ;
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $params ) ;
 
-    if ( $self->check_input_data_for_add_feature( @_ ) and
-         $_[ 0 ]->{ 'Title' } =~ /\w+/ ) {
+    if ( $self->check_input_data_for_add_new_project( $params ) ) {
         unless (
                  $self->my_select(
                                    {
                                      'from'   => 'project',
                                      'select' => 'ProjectID',
                                      'where'  => {
-                                                  "Title" => $_[ 0 ]->{ 'Title' },
+                                                  "Title" => $params->{ 'Title' },
                                                 }
                                    }
                                  )
                )
         {
             $result = $self->my_insert(
-                                                       {
-                                                         'insert' => {
-                                                                       'Title' => $_[ 0 ]->{ 'Title' },
-                                                                     },
-                                                         'table'  => 'project',
-                                                         'select' => 'ProjectID',
-                                                       }
-                                                     ) ;
+                                       {
+                                         'insert' => {
+                                                       'Title' => $params->{ 'Title' },
+                                                     },
+                                         'table'  => 'project',
+                                         'select' => 'ProjectID',
+                                       }
+                                     ) ;
 
         } else {
-            $self->add_error( 'FEATURE_NOT_ADDED' );
+            $self->add_error( 'PROJECT_EXIST' );
         }
     } else {
-        $self->add_error( 'FAILEDPARAMETER' ) ;
+        $self->add_error( 'PARAM_MISSING' ) ;
 
     } ## end else [ if ( $self->check_input_data_for_add_feature...)]
 
     return $result ;
 } ## end sub add_new_fea_to_fealist
 
+sub check_input_data_for_add_new_project {
+    my $self = shift ;
+    my $param = shift || {};
+
+    return $param->{ 'Title' } and $param->{ 'Title' } =~/\w+/ ? 1 : 0; ## end sub check_input_data_for_add_feature
+}
 
 #unit tested
 #OK
@@ -3816,31 +3822,31 @@ sub get_template_list_by_projectid {
            'from'   => 'project_template as project_temp',
            'select' => [ 'proj.Title AS ProjectName',
                          'sent_temp.SentenceTemplate AS Title'],
-    
+
            'join' => 'JOIN project as proj ON (project_temp.ProjectID = proj.ProjectID)
 		              JOIN sentencetemplate as sent_temp ON (project_temp.SentenceTemplateID = sent_temp.SentenceTemplateID ) ' ,
-    
+
            'where' => { "proj.Title" => $params->{ 'ProjectName' } }
         }
     ) ;
-							  
+							
     $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
-						  
+						
 	#TODO Project_list
     if ( !$result ) {
         $self->add_error( 'SCENARIO_LIST' ) ;
-    
+
     } ## end if ( !$result )
-    
+
     if($result){
     	foreach(@{$result}){
     		$_->{Cnt} = 0;
     	}
     }
-    
+
     return $result || [] ;
 
-} 
+}
 
 
 

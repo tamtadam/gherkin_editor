@@ -50,7 +50,7 @@
 						  <div class="form-group">
 							<label for="recipient-name" class="control-label">Avalaible projects:</label>
 							
-							<ul id="project_list" class="list-group"
+							<ul id="project_list" class="list-group">
 							</ul>
 							
 							
@@ -104,31 +104,57 @@
 		
 		<div class="inner-wrapper">
 			<div class="left pane">			
-			<div id='Feature_list' >
-							<div class="dropdown">					
-							 <button class="btn btn-default dropdown-toggle" type="button" id="Feature_list_title" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							   Features
-							   <span class="caret"></span>
-							 </button>
-							 <ul id="feature_list" class="dropdown-menu" aria-labelledby="dropdownMenu2">
-							 </ul>
-							</div>
+<!-- 			     <div id='Feature_list' > -->
+<!-- 							<div class="dropdown">					 -->
+<!-- 							 <button class="btn btn-default dropdown-toggle" type="button" id="Feature_list_title" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> -->
+<!-- 							   Features -->
+<!-- 							   <span class="caret"></span> -->
+<!-- 							 </button> -->
+<!-- 							 <ul id="feature_list" class="dropdown-menu" aria-labelledby="dropdownMenu2"> -->
+<!-- 							 </ul> -->
+<!-- 							</div> -->
 
-						<input type="text" id="add_new_feature_input"></input>
-						<br>
+<!-- 						<input type="text" id="add_new_feature_input"></input> -->
+<!-- 						<br> -->
 						
-						<button id="add_item_to_feature_list_btn" class="btn btn-info" role="button">Add</button>
-						<button id="delete_item_from_feature_list_btn" class="btn btn-info" role="button">Delete</button>
-				</div>
+<!-- 						<button id="add_item_to_feature_list_btn" class="btn btn-info" role="button">Add</button> -->
+<!-- 						<button id="delete_item_from_feature_list_btn" class="btn btn-info" role="button">Delete</button> -->
+<!-- 				</div> -->
 
-                <div class="panel-group">
+                <div id="Feature_list" class="panel-group">
                   <div class="panel panel-default">
                     <div class="panel-heading">
                       <h4 class="panel-title">
-                        <a data-toggle="collapse" href="#collapse1">Scenarios</a>
+                        <a data-toggle="collapse" href="#collapse_feature">Features</a>
                       </h4>
                     </div>
-                    <div id="collapse1" class="panel-collapse collapse">
+                    <div id="collapse_feature" class="panel-collapse collapse">
+                        <div id="feature_list" class="list-group">
+                        </div>
+                      <ul class="pager">
+                        <li><a href="#">Previous</a></li>
+                        <li><a href="#">Next</a></li>
+                      </ul>
+                      <input type="text" id="add_new_feature_input"></input>
+                      <br>
+
+                      <button id="add_item_to_feature_list_btn" class="btn btn-info" role="button">Add</button>
+                      <button id="delete_item_from_feature_list_btn" class="btn btn-info" role="button">Delete</button>
+                      <button id="open_feature_btn" class="btn btn-info" role="button">Open</button>
+
+                    </div>
+
+                  </div>
+                </div>
+
+                <div id="Scenario_list" class="panel-group">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#collapse_scenario">Scenarios</a>
+                      </h4>
+                    </div>
+                    <div id="collapse_scenario" class="panel-collapse collapse">
                         <div id="scenario_list" class="list-group">
                         </div>
                       <ul class="pager">
@@ -178,12 +204,12 @@
 						  <div class="tab-content">
 							<div id="avalaible_templates" class="tab-pane fade in active">
 								<ul class="list-group">
-								</ul>  
+								</ul>
 							</div>
 							<div id="new_template" class="tab-pane fade">
 							    <h3>New</h3>
 								<input type="text" id="sentence_temp"></input>
-								<button id="add_sentence_temp" class="btn btn-info" role="button">Add</button>							  
+								<button id="add_sentence_temp" class="btn btn-info" role="button">Add</button>							
 							</div>
 						  </div>	
 						
