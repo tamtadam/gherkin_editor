@@ -273,10 +273,6 @@ sub get_scenario_locked_status {
                 'where' => { 'Locked' => 1 },
               }
     ) ;
-    if ( !$result ) {
-        $self->add_error( 'LOCKUNLOCK' ) ;
-
-    } ## end if ( !$result )
     return $result ;
 } ## end sub get_scenario_locked_status
 
@@ -285,19 +281,15 @@ sub get_scenario_locked_status {
 sub get_feature_locked_status {
     my $self = shift ;
 
-    my $result = $self->my_select(
+    my @result = $self->my_select(
            {
              'from'   => 'Feature AS fea',
              'select' => [ 'fea.Locked AS LockedStatus', 'fea.Title  AS FeatureName', 'fea.FeatureID  AS FeatureID', ],
              'where' => { 'fea.Locked' => 1 },
            }
     ) ;
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
-    if ( !$result ) {
-        $self->add_error( 'LOCKUNLOCK' ) ;
-
-    } ## end if ( !$result )
-    return $result ;
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], \@result ) ;
+    return \@result ;
 } ## end sub get_feature_locked_status
 
 
