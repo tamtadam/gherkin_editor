@@ -219,11 +219,60 @@ sub add_new_proj_to_projlist {
     return $result ;
 } ## end sub add_new_fea_to_fealist
 
+sub add_new_template_to_template {
+    my $self   = shift ;
+    my $params = shift || {};
+    my $template_id;
+    my $result;
+
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $params ) ;
+
+    $self->add_error( 'FAILEDPARAMETER' ) if( !$params->{ 'ProjectID' } && !$params->{ 'Title' } );
+
+    unless (
+                 $self->my_select(
+                                   {
+                                     'from'   => 'template',
+                                     'select' => 'TemplateID',
+                                     'where'  => {
+                                                  "Title" => $params->{ 'Title' },
+                                                }
+                                   }
+                                 )
+               )
+        {
+            $template_id = $self->my_insert(
+                                       {
+                                         'insert' => {
+                                                       'Title' => $params->{ 'Title' },
+                                                     },
+                                         'table'  => 'template',
+                                         'select' => 'TemplateID',
+                                       }
+                                     ) ;
+
+            $result = $self->my_insert(
+                                       {
+                                         'insert' => {
+                                                       'ProjectID'  => $params->{ 'ProjectID' },
+                                                       'TemplateID' => $template_id
+                                                     },
+                                         'table'  => 'project_template',
+                                         'select' => 'ALL',
+                                       }
+                                     ) ;
+        } else {
+            $self->add_error( 'TEMPLATE_EXIST' );
+	}
+
+	return $result;
+}
+
 sub check_input_data_for_add_new_project {
     my $self = shift ;
     my $param = shift || {};
 
-    return $param->{ 'Title' } and $param->{ 'Title' } =~/\w+/ ? 1 : 0; ## end sub check_input_data_for_add_feature
+    return ( $param->{ 'Title' }  and $param->{ 'Title' } =~/\w+/ ? 1 : 0 ); ## end sub check_input_data_for_add_feature
 }
 
 #unit tested
@@ -261,6 +310,63 @@ sub delete_feature {
                              ) ;
     return $result ;
 } ## end sub delete_feature
+
+sub rename_project {
+    my $self = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+    my $params= shift || {};
+
+    $self->add_error( 'FAILEDPARAMETER' ) if(!$params->{ 'ProjectID' } && !$params->{ 'Title' }) ;
+
+    return $self->my_update({
+        table  => 'project',
+        update => {
+            Title => $params->{'Title'}
+        },
+        where => {
+            ProjectID => $params->{'ProjectID'},
+        }
+    });
+}
+
+sub rename_template {
+    my $self = shift;
+    $self->start_time( @{ [ caller(0) ] }[3], \@_ );
+    my $params= shift || {};
+
+    $self->add_error( 'FAILEDPARAMETER' ) if(!$params->{ 'TemplateID' } && !$params->{ 'Title' }) ;
+
+    return $self->my_update({
+        table  => 'template',
+        update => {
+            Title => $params->{'Title'}
+        },
+        where => {
+            TemplateID => $params->{'TemplateID'},
+        }
+    });
+}
+
+
+sub delete_project {
+    my $self = shift ;
+    my $params = shift || {};
+    $self->add_error( 'FAILEDPARAMETER' ) unless $params->{ 'ProjectID' };
+    my $result;
+
+    $result = $self->my_update(
+                                   {
+                                     'update' => { 'Deleted' => "0" },
+                                     'where'  => {
+                                                  'ProjectID' => $params->{ 'ProjectID' },
+                                                },
+                                     'table' => 'project',
+                                   }
+                                 ) ;
+
+    return $result || 1;
+} ## end sub delete_project
+
 
 #OK
 sub get_scenario_locked_status {
@@ -809,6 +915,43 @@ sub get_feature_number_by_scen_id {
     } ## end if ( !$result )
     return $result ;
 }
+
+sub get_template_list_by_projectid {
+    my $self   = shift ;
+	my $params = shift || {} ;
+    my $result = undef ;
+	
+    $self->add_error( 'PROJECT_LIST' ) unless $params->{ProjectID};
+    	
+    $result = $self->my_select(
+        {
+           'from'   => 'project as p',
+           'select' => [ 'p.Title AS Project',
+					     't.Title AS Title',
+                         'p.ProjectID AS ProjectID',
+					     't.TemplateID AS TemplateID'],
+
+           'join' => 'JOIN  project_template as p_t ON (p.ProjectID = p_t.ProjectID)
+					  JOIN  template as t ON (p_t.TemplateID = t.TemplateID )' ,
+
+           'where' => { "p.ProjectID" => $params->{ 'ProjectID' } }
+        }
+    ) ;
+							
+    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
+						
+    if ( !$result ) {
+		return [];
+    } else {
+    	foreach(@{$result}){
+    		$_->{Cnt} = 0;
+    	}    		
+    }## end if ( !$result )
+
+    return $result;
+
+}
+
 
 ###########################################################################################
 ###########################################################################################
@@ -3810,43 +3953,7 @@ sub get_project_list {
 
 } ## end sub get_scen_list
 
-#TODO add_error
-sub get_template_list_by_projectid {
-    my $self   = shift ;
-	my $params = shift ;
-    my $result = undef ;
 
-	
-    $result = $self->my_select(
-        {
-           'from'   => 'project_template as project_temp',
-           'select' => [ 'proj.Title AS ProjectName',
-                         'sent_temp.SentenceTemplate AS Title'],
-
-           'join' => 'JOIN project as proj ON (project_temp.ProjectID = proj.ProjectID)
-		              JOIN sentencetemplate as sent_temp ON (project_temp.SentenceTemplateID = sent_temp.SentenceTemplateID ) ' ,
-
-           'where' => { "proj.Title" => $params->{ 'ProjectName' } }
-        }
-    ) ;
-							
-    $self->start_time( @{ [ caller( 0 ) ] }[ 3 ], $result ) ;
-						
-	#TODO Project_list
-    if ( !$result ) {
-        $self->add_error( 'SCENARIO_LIST' ) ;
-
-    } ## end if ( !$result )
-
-    if($result){
-    	foreach(@{$result}){
-    		$_->{Cnt} = 0;
-    	}
-    }
-
-    return $result || [] ;
-
-}
 
 
 

@@ -5,14 +5,13 @@ function init_page_DB() {
     push_cmd("get_feature_scenario_datas", JSON.stringify({'get': 1 }));
 	push_cmd("get_scen_list", JSON.stringify({'get': 1 }));
 	push_cmd("get_project_list", JSON.stringify({'get': 1 }));
-	push_cmd("get_template_list_by_projectid", JSON.stringify({'get': 1 }));
+	
     processed_data = processor(send_cmd());
 
     FEATURE_SELECT_LIST  = processed_data['get_feature_list'];
     FEATURE_SCENARIO_IDS = processed_data['get_feature_scenario_datas'];
 	SCENARIO_SELECT_LIST = processed_data['get_scen_list'];
 	PROJECT_LIST         = processed_data['get_project_list'];
-	TEMPLATE_LIST        = processed_data['get_template_list_by_projectid'];
 	get_locked_status();
 }
 
@@ -41,8 +40,16 @@ function select_feature() {
 }
 
 
-function fill_template_list() {
-	
+function fill_template_list(template_list) {
+	$('#template_list').html('');
+
+    create_list_group('template_list', template_list, select_template, {}, {
+    	class : 'list-group-item',
+    	href  : '#'
+    });
+
+	create_button('rename_item_from_template_list_btn', rename_template,{}, "bootstrap");
+    create_button('add_item_to_template_list_btn', add_new_template_to_template_list,{}, "bootstrap");	
 }
 
 function fill_project_list() {
@@ -52,9 +59,67 @@ function fill_project_list() {
     	class : 'list-group-item',
     	href  : '#'
     });
-	
-	//create_button('delete_item_from_feature_list_btn', Are_you_sure_you_want_to_delete_feature,{}, "bootstrap");
+
+	create_button('rename_item_from_project_list_btn', rename_project,{}, "bootstrap");
+	create_button('delete_item_from_project_list_btn', Are_you_sure_you_want_to_delete_project,{}, "bootstrap");
     create_button('add_item_to_project_list_btn', add_new_project_to_project_list,{}, "bootstrap");
+}
+
+function rename_project() {
+    push_cmd("rename_project", JSON.stringify({
+        'ProjectID': $('#project_list .selected ').data('data').ProjectID,
+        'Title'    : $("#add_new_project_input").val()
+    }), function (){
+    	$("#project_list .selected").html($("#add_new_project_input").val());
+    });
+    processor(send_cmd());	
+}
+
+function rename_template() {
+    push_cmd("rename_template", JSON.stringify({
+        'TemplateID': $('#template_list .selected ').data('data').TemplateID,
+        'Title'    : $("#add_new_template_input").val()
+    }), function (){
+    	$("#template_list .selected").html($("#add_new_template_input").val());
+    });
+    processor(send_cmd());		
+}
+
+function Are_you_sure_you_want_to_delete_project() {
+    if(!$('#project_list .selected ').length ) {
+    	return;
+    }
+    var project_data = $('#project_list .selected ').data('data');
+    $("#Delete_project_from_project_list").dialog({
+        width: 800,
+        height: 200,
+        position: [600, 600],
+        title: "Are you sure do you want" + "\n" + "to delete: " + project_data.Title + " project?",
+        buttons:
+        {
+            "Delete project": {
+                text: 'Ok',
+                id: 'delete_project_dialog_btn',
+                click: function() {
+                    push_cmd("delete_project", JSON.stringify({
+                        'ProjectID': project_data.ProjectID
+                    }), function (){
+                    	$("#Delete_project_from_project_list").dialog("close");
+                    	$("#project_list .selected").remove();
+                    	$("add_new_project_input").val("");
+                    });
+                    processor(send_cmd());
+                }
+            },
+            "Cancel": {
+                text: 'Not now',
+                click: function() {
+                    $(this).dialog("close");
+                }
+            }
+        }
+    })	
+	
 }
 
 function select_project() {		
@@ -63,6 +128,16 @@ function select_project() {
 
 	$(this).addClass('active');
 	$(this).addClass('selected');
+	$("#add_new_project_input").val($(this).data("data").Title);
+}
+
+function select_template() {
+	$('.list-group').find('a').removeClass('active');
+	$('.list-group').find('a').removeClass('selected');
+
+	$(this).addClass('active');
+	$(this).addClass('selected');
+	$("#add_new_template_input").val($(this).data("data").Title);	
 }
 
 function fill_scenario_list() {
@@ -89,10 +164,30 @@ function add_new_scenario_to_scenario_list() {
 function add_new_project_to_project_list() {
     push_cmd("add_new_proj_to_projlist", JSON.stringify({
         'Title': $("#add_new_project_input").val() || ''
-    }));
+    }), function() {
+    	$('#add_new_project_input').val('');
+        update_project_list();	
+    });
     processor(send_cmd());
-	$('#add_new_project_input').val('');
-    update_project_list();	
+}
+
+function add_new_template_to_template_list() {
+	if( $("#add_new_template_input").val() === "" ) {
+    	return;
+    }
+	push_cmd("add_new_template_to_template", JSON.stringify({
+        'Title': $("#add_new_template_input").val(),
+        'ProjectID': $("#project_list .selected").data("data").ProjectID
+    }), function() {
+    	var a = create_a({
+    		class : "list-group-item disabled ui-sortable-handle",
+    		href  : "#"
+    	});
+    	$(a).html( $('#add_new_template_input').val() );
+    	$("#template_list").append(a);
+    	$('#add_new_template_input').val('');
+    });
+    processor(send_cmd());
 }
 
 function add_new_feature_to_feature_list() {
@@ -260,15 +355,9 @@ function init_onclick() {
 	$("#save_projects").click(function () {
 		project_name = "Selected project: " + $("ul#project_list a.active").text();
 		$("#act_project").text(project_name);
-		datas_from_server = get_template_projectname($("ul#project_list a.active").text());
-		document.getElementById("avalaible_templates").innerHTML = "";
-
-		create_list_group('avalaible_templates', datas_from_server, select_project, {}, {
-			class : 'list-group-item',
-			href  : '#'
-		});
+		push_cmd("get_template_list_by_projectid", JSON.stringify({'ProjectID': $("#project_list .selected").data("data").ProjectID }), fill_template_list);
+		processor(send_cmd());
 	});	
-	
 }
 
 function get_template_projectname(project_name) {

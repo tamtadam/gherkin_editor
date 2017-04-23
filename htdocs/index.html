@@ -38,7 +38,7 @@
 
 </head>
 <body>
-				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+				<div class="modal fade" id="Project_dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 				  <div class="modal-dialog" role="document">
 					<div class="modal-content">
 					  <div class="modal-header">
@@ -60,6 +60,41 @@
 							<input type="text" id="add_new_project_input" class="form-control"></input>
 							<button id="add_item_to_project_list_btn" class="btn btn-info" role="button">Add</button>
 							<button id="delete_item_from_project_list_btn" class="btn btn-info" role="button">Delete</button>
+							<button id="rename_item_from_project_list_btn" class="btn btn-info" role="button">Rename</button>
+						  </div>
+						</form>
+					  </div>
+					  <div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button id="save_projects" type="button" class="btn btn-primary" data-dismiss="modal">Open project</button>
+					  </div>
+					</div>
+				  </div>
+				</div>
+
+
+				<div class="modal fade" id="Template_dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+				  <div class="modal-dialog" role="document">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">Projects</h4>
+					  </div>
+					  <div class="modal-body">
+						<form>
+						  <div class="form-group">
+							<label for="recipient-name" class="control-label">Avalaible templates:</label>
+							
+							<ul id="template_list" class="list-group">
+							</ul>
+							
+							
+						  </div>
+						  <div class="form-group">
+							<label for="message-text" class="control-label">Add new:</label>
+							<input type="text" id="add_new_template_input" class="form-control"></input>
+							<button id="add_item_to_template_list_btn" class="btn btn-info" role="button">Add</button>
+							<button id="rename_item_from_template_list_btn" class="btn btn-info" role="button">Rename</button>
 						  </div>
 						</form>
 					  </div>
@@ -70,7 +105,6 @@
 					</div>
 				  </div>
 				</div>
-
 
 
 	 <div id="menu"class="header">
@@ -192,27 +226,7 @@
 				<div class="inner">
 					<div id = "top" class="top">
 					
-					    <button id="act_project"></button>
-
-					
-						<div class="container">
-						  <ul class="nav nav-pills">
-							<li class="active"><a data-toggle="pill" href="#avalaible_templates">Avalaible template</a></li>
-							<li><a data-toggle="pill" href="#new_template">Add new</a></li>
-						  </ul>
-						</div>					
-						  <div class="tab-content">
-							<div id="avalaible_templates" class="tab-pane fade in active">
-								<ul class="list-group">
-								</ul>
-							</div>
-							<div id="new_template" class="tab-pane fade">
-							    <h3>New</h3>
-								<input type="text" id="sentence_temp"></input>
-								<button id="add_sentence_temp" class="btn btn-info" role="button">Add</button>							
-							</div>
-						  </div>	
-						
+					    <h3 id="act_project"></h3>						
 					</div>
 				
 					<div class="bottom">
@@ -227,8 +241,14 @@
 
 
 				<div id='Project_list' >
-					<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-					  projects
+					<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#Project_dialog">
+					  project editor
+					</button>
+				</div>
+
+				<div id='Template_list' >
+					<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#Template_dialog">
+					  template editor
 					</button>
 				</div>
 			
@@ -251,6 +271,9 @@
 
 						</div>
 					</div>	
+					
+                   <div id="Delete_project_from_project_list">	</div>			
+					
 				</div>		
 			</div>
 		</div>
