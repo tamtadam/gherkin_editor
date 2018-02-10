@@ -23,14 +23,14 @@ my $err_handler_mock = TestMock->new( 'Errormsg' );
    $err_handler_mock->mock( 'new' );
 
 sub BEGIN {
-    $ENV{ TEST_SQLITE } = q~../sql/gherkin_editor.sqlite~;
+    $ENV{ TEST_SQLITE } = q~f:/GIT/gherkin_editor/sql/gherkin_editor.sqlite~;
     TestMock::set_test_dependent_db();
     $db = DBConnHandler::init();
     #DBConnHandler::init_sqlite_db( map{
     #    '../sql/' . $_
     #} qw( session.sqlite feature.sqlite scenario.sqlite ) );
     $ma = Modell_ajax->new( { DB_HANDLE => $db } );
-    $DBH = new DBH( { DB_HANDLE => $db } ) ;
+    $DBH = new DBH( { DB_HANDLE => $db, noparams => 1 } ) ;
 }
 
 sub END {

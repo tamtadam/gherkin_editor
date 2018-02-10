@@ -1,15 +1,15 @@
 use strict;
 use warnings;
-use Data::Dumper;use File::Spec::Functions qw(rel2abs abs2rel);
-use FindBin;
-use Cwd qw(cwd realpath);
+use Data::Dumper;
+use Getopt::Long;
 
-use File::Basename qw(dirname);
 
-my $cwd = cwd();
+my $path = "..";
 
-my $dir = dirname(__FILE__) . '/../cgi-bin/';
+GetOptions (
+            "path=s"  => \$path
+) or die("Missing argument");
 
-print qx{perlcritic -3 $dir};
 
+print qx{perlcritic -3 $path};
 

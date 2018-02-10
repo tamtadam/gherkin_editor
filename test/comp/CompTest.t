@@ -35,5 +35,3 @@ my $json = qq(
 
 my $res = TestMock::get_result_of_fcgi( $path . $cgi_file, $json);
 
-print Dumper $res;
-

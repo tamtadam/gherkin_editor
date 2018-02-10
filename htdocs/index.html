@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title></title>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" type="text/css" href="css/resizable.css">
+<!-- <link rel="stylesheet" type="text/css" href="css/resizable.css">  -->
 
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -230,7 +230,63 @@
 					</div>
 				
 					<div class="bottom">
-						<div>Editor</div>
+						<div>Editor
+
+                            <div id="edit_scenario" title="EDIT SCENARIO" >
+
+                                <ul>
+                                    <li><a href="#check_scenario"    class = 'last' >Selected scenario    </a></li>
+                                    <li><a href="#select_sentence"  class = 'last' >Create sentence      </a></li>
+                                    <li><a href="#check_fea"        class = 'last' >Check whole feature </a></li>
+                                </ul>
+
+                                    <div id="check_scenario"  title= "Edit scenario" >
+
+                                    </div>
+
+                                    <div id="select_sentence" title="Select gherkin sentence" >
+
+                                        <div>
+                                            <div id = 'item_on_screen_div'></div>
+                                        </div>
+
+                                        <h6 id="GherkinID_h6">Gherkin: </h6><input id="GherkinID" size = "76" ></input>
+                                        <h6 id="SentenceID_h6">Sentence:</h6><input id="SentenceID" size = "76" ></input>
+                                        <h6 id="Value_h6">Value</h6><input id="ValueID" size = "76" ></input>
+                                        <h6 id="ScreenID_h6">Screen:</h6><input id="ScreenID" size = "76" ></input>
+                                        <h6 id="ScreenstateID_h6">Screenshot:</h6><input id="ScreenstateID" size = "76" ></input>
+                                        <h6 id="ScrollbarID_h6">Scroll:</h6><input id="ScrollbarID" size = "76" ></input>
+                                        <h6 id="ItemID_h6">Button:</h6><input id="ItemID" size = "76" ></input>
+                                        <h6 id="CommunicationLineID_h6">Communication</h6><input id="CommunicationLineID" size = "76" ></input>
+
+                                        <h6 Result</h6>
+                                        <div id="SaveSentenceToScenario">  </div>
+                                        <ul id="complete_sentence_result" class="droptrue">  </ul>
+
+                                        <br>
+                                        <br>
+                                        <ul id="recycle_for_sentences"> Recycle</ul>
+                                        <br>
+                                        <br>
+
+                                        <div id = "mondatosszeallitas">
+
+
+                                            <h4>Change scenario:</h4><br>
+                                            <div></div>
+                                            <ul id="selected_sentence_sortable" class="droptrue" >
+                                                <li><br></li>
+                                            </ul>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div id="check_fea"  title= "Edit scenario" style="display:none" >
+
+                                    </div>
+                        </div>
 					</div>
 				</div>
 			</div>

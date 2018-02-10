@@ -4,8 +4,8 @@ use Data::Dumper;
 
 use FindBin ;
 use lib $FindBin::RealBin;
-use lib $FindBin::RealBin . "../../../common/cgi-bin/" ;
-use lib $FindBin::RealBin . "../../cgi-bin/" ;
+use lib "f:/GIT/common/cgi-bin/" ;
+use lib "f:/GIT/gherkin_editor/cgi-bin/" ;
 
 use Test::More tests => 10;
 
@@ -27,10 +27,10 @@ $ma = Modell_ajax->new( { DB_HANDLE => $db } );
 
 
 sub BEGIN {
-    $ENV{ TEST_SQLITE } = q~../sql/gherkin_editor.sqlite~;
+    $ENV{ TEST_SQLITE } = q~f:/GIT/gherkin_editor/sql/gherkin_editor.sqlite~;
     TestMock::set_test_dependent_db();
     $db = DBConnHandler::init();
-    $DBH = new DBH( { DB_HANDLE => $db } ) ;
+    $DBH = new DBH( { DB_HANDLE => $db, noparams => 1 } ) ;
 }
 
 sub END {
