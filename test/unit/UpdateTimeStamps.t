@@ -4,8 +4,8 @@ use Data::Dumper;
 
 use FindBin ;
 use lib $FindBin::RealBin;
-use lib $FindBin::RealBin . "../../../common/cgi-bin/" ;
-use lib $FindBin::RealBin . "../../cgi-bin/" ;
+use lib $FindBin::RealBin . "../../../../common/cgi-bin/" ;
+use lib $FindBin::RealBin . "../../../cgi-bin/" ;
 
 use Test::More tests => 4;
 

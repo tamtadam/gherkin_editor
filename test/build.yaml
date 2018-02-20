@@ -1,0 +1,7 @@
+unit:
+    tc_folder: f:\GIT\gherkin_editor\test\unit\
+    selector: '*_s.t'
+static:
+    exec: perlcritic -3
+    regexp: 'See page (?<page>\d+) of PBP.  \(Severity: (?<severity>\d)\)'
+    
