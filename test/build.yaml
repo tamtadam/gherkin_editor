@@ -1,5 +1,5 @@
 unit:
-    tc_folder: f:\GIT\gherkin_editor\test\unit\
+    tc_folder: /test/unit/
     selector: '*_s.t'
 static:
     exec: perlcritic -3
