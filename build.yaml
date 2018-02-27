@@ -1,0 +1,14 @@
+unit:
+    tc_folder: /test/unit/
+    selector : '*.t'
+    regexp: '.*/(?<testcase>.*?)\s+\.{2,}\s+(?<result>\w+)'
+    env:
+        HARNESS_OPTIONS       : 'j4:c'
+        HARNESS_TIMER         : 1
+        HARNESS_PERL_SWITCHES : '-MDevel::Cover=-db,cover_db,-ignore,\.t'
+        
+
+static:
+    exec: perlcritic -3
+    regexp: 'See page (?<page>\d+) of PBP.  \(Severity: (?<severity>\d)\)'
+    

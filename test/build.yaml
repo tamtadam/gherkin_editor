@@ -1,7 +1,0 @@
-unit:
-    tc_folder: /test/unit/
-    selector: '*_s.t'
-static:
-    exec: perlcritic -3
-    regexp: 'See page (?<page>\d+) of PBP.  \(Severity: (?<severity>\d)\)'
-    
