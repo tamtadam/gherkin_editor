@@ -768,7 +768,7 @@ sub send_activation_request {
     my $param = shift || return ;
     my $templ = Template->new({
         "TYPE"   => Template::TYPE->{ FILE },
-        "SOURCE" => "./templates/activation_link.tmpl",
+        "SOURCE" => ( $ENV{ ROOTDIR } || "") . "//templates/activation_link.tmpl",
     }) ;
 
     $templ->fill_in({
@@ -776,7 +776,7 @@ sub send_activation_request {
         URL      => Cfg::get_data('CGIURL') . '?' . "ValidateUser=\"" . $param->{ partner_id } . '"'
     });
 
-    Email::send_mail({
+    return Email::send_mail({
         to          => $param->{ email },
         body        => $templ->return_string(),
         subject     => 'Activation link',

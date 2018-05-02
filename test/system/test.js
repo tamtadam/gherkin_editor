@@ -1,5 +1,5 @@
-var action = require('..\\actions')
-var assert = require('..\\assertions')
+var action = require('f:\\GIT\\common\\test\\system_test\\actions')
+var assert = require('f:\\GIT\\common\\test\\system_test\\assertions')
 
 var URL = 'http://localhost/gherkin_editor/index.html';
 
