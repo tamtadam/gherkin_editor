@@ -73,12 +73,12 @@ subtest 'invalid_inputs' => sub {
 };
 
 subtest 'valid login' => sub {
-    #
+    # set up mock data
     $DBH->my_update({
         table   => "partner",
         where  => {
             username  => "trenyika",
-            password  => "ebbc3c26a34b609dc46f5c3378f96e08",
+            password  => "ebbc3c26a34b609dc46f5c3378",
         },
         relation => 'AND',
         update => {
@@ -86,8 +86,11 @@ subtest 'valid login' => sub {
         }
     });
     
-    my $json = qq({'LoginForm':{'acc':'trenyika','pwd':'ebbc3c26a34b609dc46f5c3378f96e08'}});
+    # call service wih json
+    my $json = qq({'LoginForm':{'acc':'trenyika','pwd':'ebbc3c26a34b609dc46f5c3378'}});
     my $res = %{ TestMock::get_result_of_fcgi( $path . $cgi_file, $json) }{ref};
+    
+    # assertions
     ok($res->{ LoginForm }->{ username } eq 'trenyika', "username returned");
     ok(defined $res->{ LoginForm }->{ session }, "session id calculated");
 };
